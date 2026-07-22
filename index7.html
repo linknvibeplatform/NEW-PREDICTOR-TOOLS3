@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="assets/icon-192x192.png">
+  <!-- PWA Meta Tags -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0d0d">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta charset="UTF-8">
+<meta name="apple-mobile-web-app-title" content="BetKawa">
+<link rel="apple-touch-icon" href="assets/icon-192x192.png">
+ <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>BetKawa — Aviator-Style Crash Game</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
@@ -4695,5 +4698,85 @@ function openAviatorApp() {
 
 
     </script>
-</body>
+
+         <script>
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(() => console.log('Service Worker registered ✅'))
+      .catch(err => console.log('Service Worker failed ❌', err));
+  });
+}
+
+// Install prompt for Android
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  setTimeout(() => {
+    const installBtn = document.createElement('div');
+    installBtn.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #28a71d;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: 700;
+      z-index: 9999;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      font-family: system-ui;
+    `;
+    installBtn.textContent = '📲 Install App';
+    installBtn.onclick = async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.remove();
+      }
+    };
+    document.body.appendChild(installBtn);
+  }, 3000);
+});
+
+// iOS install instructions
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+if (isIOS) {
+  setTimeout(() => {
+    const iosMsg = document.createElement('div');
+    iosMsg.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.9);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 12px;
+      font-size: 14px;
+      z-index: 9999;
+      text-align: center;
+      max-width: 90%;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-family: system-ui;
+    `;
+    iosMsg.innerHTML = `
+      📱 Install on iOS:<br>
+      Tap <span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px;">Share</span>
+      then <span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px;">Add to Home Screen</span>
+      <br>
+      <button onclick="this.parentElement.remove()" style="margin-top:10px;background:#28a71d;color:white;border:none;padding:6px 20px;border-radius:20px;font-weight:600;cursor:pointer;">Got it!</button>
+    `;
+    document.body.appendChild(iosMsg);
+    setTimeout(() => { if (iosMsg.parentNode) iosMsg.remove(); }, 10000);
+  }, 3000);
+}
+</script>
+       </body>
 </html>
