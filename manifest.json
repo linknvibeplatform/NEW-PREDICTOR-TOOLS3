@@ -1,6 +1,6 @@
 {
-  "name": "BetKawa Crash Game",
-  "short_name": "BetKawa",
+  "name": "BetPawa",
+  "short_name": "BetPawa",
   "description": "Aviator-Style Crash Game",
   "start_url": "index.html",
   "display": "standalone",
