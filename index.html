@@ -1079,14 +1079,14 @@ overflow: hidden;
   flex-shrink: 0;
 ">
   <div style="display: flex; align-items: center; gap: 6px;">
-    <span style="font-weight: 600;">10:41</span>
+    <span style="font-weight: 600;"></span>
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
       <path d="M9 12l2 2 4-4"/>
     </svg>
   </div>
   <div style="display: flex; align-items: center; gap: 6px;">
-    <span style="font-size: 10px;">VoLTE1</span>
+    <span style="font-size: 10px;"> </span>
     <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="white" stroke-width="1.5">
       <rect x="0" y="12" width="4" height="6" rx="1"/>
       <rect x="6" y="8" width="4" height="10" rx="1"/>
@@ -1097,7 +1097,7 @@ overflow: hidden;
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H5.78a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 .33 1.82l.04.04A10 10 0 0 0 12 17.66 10 10 0 0 0 19.36 15l.04-.04z"/>
     </svg>
-    <span>18%</span>
+    <span></span>
     <svg width="20" height="12" viewBox="0 0 24 14" fill="none" stroke="white" stroke-width="1.5">
       <rect x="0" y="4" width="4" height="10" rx="1"/>
       <rect x="5" y="2" width="4" height="12" rx="1"/>
@@ -2759,572 +2759,647 @@ overflow: hidden;
     </div>
 
     <script>
-    // ============================================================
-    // ============ SUPABASE CONFIGURATION ============
-    // ============================================================
-    const SUPABASE_URL = 'https://wkdewqwqhopbwygsfdav.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_5QGobPerm0Bw973REoEvXg_Cs6n70lZ';
-    let supabaseClient = null;
+  // ============================================================
+// ============ SUPABASE CONFIGURATION ============
+// ============================================================
+const SUPABASE_URL = 'https://wkdewqwqhopbwygsfdav.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_5QGobPerm0Bw973REoEvXg_Cs6n70lZ';
+let supabaseClient = null;
 
-    function initSupabase() {
-        if (typeof supabase !== 'undefined' && supabase.createClient) {
-            try {
-                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                console.log('✅ Supabase initialized for Gate System');
-                return true;
-            } catch (e) {
-                console.error('❌ Supabase init error:', e);
-                return false;
-            }
-        }
-        console.warn('⚠️ Supabase library not loaded - trying to load...');
-        if (typeof document !== 'undefined') {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
-            script.onload = function() {
-                console.log('✅ Supabase library loaded dynamically');
-                if (typeof supabase !== 'undefined' && supabase.createClient) {
-                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                    console.log('✅ Supabase client created');
-                }
-            };
-            script.onerror = function() {
-                console.error('❌ Failed to load Supabase library');
-            };
-            document.head.appendChild(script);
-        }
-        return false;
-    }
-
-    // ============================================================
-    // ============ GATE SYSTEM STATE ============
-    // ============================================================
-    let gateState = {
-        isLoggedIn: false,
-        username: null,
-        isVerified: false,
-        isCancelled: false,
-        sessionActive: false,
-        deviceInfo: navigator.userAgent || 'Unknown Device',
-        status: 'pending',
-        isPermanentlyVerified: false
-    };
-
-    // ============================================================
-    // ============ TOGGLE LOGIN/REGISTER FORMS ============
-    // ============================================================
-    function showRegisterForm() {
-        document.getElementById('loginForm').style.display = 'none';
-        document.getElementById('registerForm').style.display = 'block';
-        document.getElementById('regErrorMsg').style.display = 'none';
-        document.getElementById('regStatusMsg').style.display = 'none';
-        document.getElementById('regSuccessMsg').style.display = 'none';
-        document.getElementById('regErrorMsg').textContent = '';
-        document.getElementById('regStatusMsg').textContent = '';
-        document.getElementById('regSuccessMsg').textContent = '';
-    }
-
-    function showLoginForm() {
-        document.getElementById('registerForm').style.display = 'none';
-        document.getElementById('loginForm').style.display = 'block';
-        document.getElementById('gateErrorMsg').style.display = 'none';
-        document.getElementById('gateStatusMsg').style.display = 'none';
-        document.getElementById('gateSuccessMsg').style.display = 'none';
-        document.getElementById('gateErrorMsg').textContent = '';
-        document.getElementById('gateStatusMsg').textContent = '';
-        document.getElementById('gateSuccessMsg').textContent = '';
-    }
-
-    // ============================================================
-    // ============ GATE TRIGGER (VIEW CASHBACK BUTTON) ============
-    // ============================================================
-
-    function handleGateTrigger() {
-        console.log('🛡️ Gate trigger clicked (VIEW CASHBACK)');
-        
-        // If user is permanently verified, hide all login elements and show full access
-        if (gateState.isPermanentlyVerified && gateState.isVerified) {
-            console.log('✅ User is permanently verified - hiding all login elements');
-            document.getElementById('gateTriggerButton').style.display = 'none';
-            document.getElementById('gateAccessBlocker').style.display = 'none';
-            showToast('✅ You are verified! Full access granted.', 'success');
-            return;
-        }
-
-        // If user is already verified but not marked permanent (shouldn't happen)
-        if (gateState.isLoggedIn && gateState.isVerified && gateState.sessionActive) {
-            console.log('✅ User already logged in and verified');
-            // Make it permanent
-            gateState.isPermanentlyVerified = true;
-            document.getElementById('gateTriggerButton').style.display = 'none';
-            document.getElementById('gateAccessBlocker').style.display = 'none';
-            showToast('✅ You are verified! Full access granted.', 'success');
-            return;
-        }
-
-        // Ensure Supabase is initialized
-        if (!supabaseClient) {
-            initSupabase();
-        }
-
-        // Show the login overlay - default to login form
-        showLoginForm();
-        showGateLogin();
-    }
-
-    function closeBlockerAndShowLogin() {
-        document.getElementById('gateAccessBlocker').style.display = 'none';
-        showLoginForm();
-        showGateLogin();
-    }
-
-    // ============================================================
-    // ============ GATE LOGIN FUNCTIONS ============
-    // ============================================================
-
-    function showGateLogin() {
-        const overlay = document.getElementById('gateLoginOverlay');
-        if (overlay) {
-            overlay.style.display = 'flex';
-            document.getElementById('gateUsername').value = '';
-            document.getElementById('gateWhatsapp').value = '';
-            document.getElementById('regUsername').value = '';
-            document.getElementById('regWhatsapp').value = '';
-            document.getElementById('gateErrorMsg').style.display = 'none';
-            document.getElementById('gateStatusMsg').style.display = 'none';
-            document.getElementById('gateSuccessMsg').style.display = 'none';
-            document.getElementById('gateLoader').style.display = 'none';
-            document.getElementById('gateLoginBtn').disabled = false;
-            document.getElementById('gateLoginBtn').textContent = '🔑 Login';
-            
-            setTimeout(() => {
-                document.getElementById('gateUsername').focus();
-            }, 300);
+function initSupabase() {
+    if (typeof supabase !== 'undefined' && supabase.createClient) {
+        try {
+            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('✅ Supabase initialized for Gate System');
+            return true;
+        } catch (e) {
+            console.error('❌ Supabase init error:', e);
+            return false;
         }
     }
+    console.warn('⚠️ Supabase library not loaded');
+    return false;
+}
 
-    function closeGateLogin() {
-        const overlay = document.getElementById('gateLoginOverlay');
-        if (overlay) {
-            overlay.style.display = 'none';
+// ============================================================
+// ============ GATE SYSTEM STATE ============
+// ============================================================
+let gateState = {
+    isLoggedIn: false,
+    username: null,
+    isVerified: false,
+    isCancelled: false,
+    sessionActive: false,
+    deviceInfo: navigator.userAgent || 'Unknown Device',
+    status: 'pending',
+    isPermanentlyVerified: false
+};
+
+// ============================================================
+// ============ TOGGLE LOGIN/REGISTER FORMS ============
+// ============================================================
+function showRegisterForm() {
+    var loginForm = document.getElementById('loginForm');
+    var registerForm = document.getElementById('registerForm');
+    if (loginForm) loginForm.style.display = 'none';
+    if (registerForm) registerForm.style.display = 'block';
+    
+    // Clear messages
+    var elements = ['regErrorMsg', 'regStatusMsg', 'regSuccessMsg'];
+    elements.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.style.display = 'none';
+            el.textContent = '';
         }
-    }
+    });
+}
 
-    // ============================================================
-    // ============ MAKE VERIFICATION PERMANENT ============
-    // ============================================================
+function showLoginForm() {
+    var loginForm = document.getElementById('loginForm');
+    var registerForm = document.getElementById('registerForm');
+    if (registerForm) registerForm.style.display = 'none';
+    if (loginForm) loginForm.style.display = 'block';
+    
+    // Clear messages
+    var elements = ['gateErrorMsg', 'gateStatusMsg', 'gateSuccessMsg'];
+    elements.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) {
+            el.style.display = 'none';
+            el.textContent = '';
+        }
+    });
+}
 
-    function makeVerificationPermanent(username) {
-        gateState.isPermanentlyVerified = true;
-        gateState.isLoggedIn = true;
-        gateState.isVerified = true;
-        gateState.username = username;
-        localStorage.setItem('gate_verified_permanent', 'true');
-        localStorage.setItem('gate_username', username);
-        
-        // Hide all login-related elements
+// ============================================================
+// ============ GATE TRIGGER ============
+// ============================================================
+function handleGateTrigger() {
+    console.log('🛡️ Gate trigger clicked');
+    
+    if (gateState.isPermanentlyVerified && gateState.isVerified) {
+        console.log('✅ Already verified');
         document.getElementById('gateTriggerButton').style.display = 'none';
         document.getElementById('gateAccessBlocker').style.display = 'none';
-        
-        console.log('✅ Verification made permanent for:', username);
+        showToast('✅ You are verified! Full access granted.', 'success');
+        return;
     }
 
-    // ============================================================
-    // ============ HANDLE REGISTER ============
-    // ============================================================
+    if (!supabaseClient) {
+        initSupabase();
+    }
 
-    async function handleGateRegister() {
-        const username = document.getElementById('regUsername').value.trim();
-        const whatsapp = document.getElementById('regWhatsapp').value.trim();
-        
-        const errorMsg = document.getElementById('regErrorMsg');
-        const statusMsg = document.getElementById('regStatusMsg');
-        const successMsg = document.getElementById('regSuccessMsg');
-        const loader = document.getElementById('gateRegisterLoader');
-        const registerBtn = document.getElementById('gateRegisterBtn');
+    showLoginForm();
+    showGateLogin();
+}
 
-        errorMsg.style.display = 'none';
-        statusMsg.style.display = 'none';
-        successMsg.style.display = 'none';
+function closeBlockerAndShowLogin() {
+    var blocker = document.getElementById('gateAccessBlocker');
+    if (blocker) blocker.style.display = 'none';
+    showLoginForm();
+    showGateLogin();
+}
 
-        if (!username || username.length < 2) {
+// ============================================================
+// ============ GATE LOGIN FUNCTIONS ============
+// ============================================================
+function showGateLogin() {
+    var overlay = document.getElementById('gateLoginOverlay');
+    if (!overlay) {
+        console.error('❌ gateLoginOverlay not found');
+        return;
+    }
+    overlay.style.display = 'flex';
+    
+    // Clear inputs
+    var usernameInput = document.getElementById('gateUsername');
+    var whatsappInput = document.getElementById('gateWhatsapp');
+    if (usernameInput) usernameInput.value = '';
+    if (whatsappInput) whatsappInput.value = '';
+    
+    // Clear messages
+    var errorMsg = document.getElementById('gateErrorMsg');
+    var statusMsg = document.getElementById('gateStatusMsg');
+    var successMsg = document.getElementById('gateSuccessMsg');
+    if (errorMsg) { errorMsg.style.display = 'none'; errorMsg.textContent = ''; }
+    if (statusMsg) { statusMsg.style.display = 'none'; statusMsg.textContent = ''; }
+    if (successMsg) { successMsg.style.display = 'none'; successMsg.textContent = ''; }
+    
+    var loader = document.getElementById('gateLoader');
+    if (loader) loader.style.display = 'none';
+    
+    var loginBtn = document.getElementById('gateLoginBtn');
+    if (loginBtn) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '🔑 Login';
+    }
+    
+    setTimeout(function() {
+        var input = document.getElementById('gateUsername');
+        if (input) input.focus();
+    }, 300);
+}
+
+function closeGateLogin() {
+    var overlay = document.getElementById('gateLoginOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+// ============================================================
+// ============ MAKE VERIFICATION PERMANENT ============
+// ============================================================
+function makeVerificationPermanent(username) {
+    gateState.isPermanentlyVerified = true;
+    gateState.isLoggedIn = true;
+    gateState.isVerified = true;
+    gateState.username = username;
+    localStorage.setItem('gate_verified_permanent', 'true');
+    localStorage.setItem('gate_username', username);
+    
+    var triggerBtn = document.getElementById('gateTriggerButton');
+    var blocker = document.getElementById('gateAccessBlocker');
+    if (triggerBtn) triggerBtn.style.display = 'none';
+    if (blocker) blocker.style.display = 'none';
+    
+    console.log('✅ Verification made permanent for:', username);
+}
+
+// ============================================================
+// ============ HANDLE REGISTER ============
+// ============================================================
+async function handleGateRegister() {
+    var usernameInput = document.getElementById('regUsername');
+    var whatsappInput = document.getElementById('regWhatsapp');
+    
+    if (!usernameInput || !whatsappInput) {
+        console.error('❌ Register inputs not found');
+        return;
+    }
+    
+    var username = usernameInput.value.trim();
+    var whatsapp = whatsappInput.value.trim();
+    
+    var errorMsg = document.getElementById('regErrorMsg');
+    var statusMsg = document.getElementById('regStatusMsg');
+    var successMsg = document.getElementById('regSuccessMsg');
+    var loader = document.getElementById('gateRegisterLoader');
+    var registerBtn = document.getElementById('gateRegisterBtn');
+
+    if (errorMsg) { errorMsg.style.display = 'none'; errorMsg.textContent = ''; }
+    if (statusMsg) { statusMsg.style.display = 'none'; statusMsg.textContent = ''; }
+    if (successMsg) { successMsg.style.display = 'none'; successMsg.textContent = ''; }
+
+    if (!username || username.length < 2) {
+        if (errorMsg) {
             errorMsg.textContent = '⚠️ Please enter a valid username (min 2 characters)';
             errorMsg.style.display = 'block';
-            return;
         }
+        return;
+    }
 
-        if (!whatsapp || whatsapp.length < 6) {
+    if (!whatsapp || whatsapp.length < 6) {
+        if (errorMsg) {
             errorMsg.textContent = '⚠️ Please enter a valid WhatsApp number';
             errorMsg.style.display = 'block';
+        }
+        return;
+    }
+
+    if (loader) loader.style.display = 'block';
+    if (registerBtn) {
+        registerBtn.disabled = true;
+        registerBtn.textContent = '⏳ Registering...';
+    }
+
+    try {
+        if (!supabaseClient) {
+            initSupabase();
+            if (!supabaseClient) {
+                if (errorMsg) {
+                    errorMsg.textContent = '❌ Supabase not connected. Please try again.';
+                    errorMsg.style.display = 'block';
+                }
+                if (loader) loader.style.display = 'none';
+                if (registerBtn) {
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = '📝 Register';
+                }
+                return;
+            }
+        }
+
+        var { data: existing, error: checkError } = await supabaseClient
+            .from('gate_users')
+            .select('*')
+            .eq('username', username)
+            .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        if (existing) {
+            if (errorMsg) {
+                errorMsg.textContent = '❌ Username already exists. Please choose another.';
+                errorMsg.style.display = 'block';
+            }
+            if (loader) loader.style.display = 'none';
+            if (registerBtn) {
+                registerBtn.disabled = false;
+                registerBtn.textContent = '📝 Register';
+            }
             return;
         }
 
-        loader.style.display = 'block';
-        registerBtn.disabled = true;
-        registerBtn.textContent = '⏳ Registering...';
+        var { data: newUser, error: createError } = await supabaseClient
+            .from('gate_users')
+            .insert([{
+                username: username,
+                whatsapp: whatsapp,
+                status: 'pending',
+                registered_at: new Date().toISOString(),
+                last_login: new Date().toISOString(),
+                total_minutes: 0,
+                is_online: false,
+                device_info: gateState.deviceInfo
+            }])
+            .select()
+            .single();
 
-        try {
-            if (!supabaseClient) {
-                initSupabase();
-                if (!supabaseClient) {
-                    errorMsg.textContent = '❌ Supabase not connected. Please try again.';
-                    errorMsg.style.display = 'block';
-                    loader.style.display = 'none';
-                    registerBtn.disabled = false;
-                    registerBtn.textContent = '📝 Register';
-                    return;
-                }
-            }
+        if (createError) throw createError;
 
-            const { data: existing, error: checkError } = await supabaseClient
-                .from('gate_users')
-                .select('*')
-                .eq('username', username)
-                .maybeSingle();
+        await supabaseClient.from('gate_activity_log').insert([{
+            user_id: newUser.id,
+            action: 'register',
+            details: 'New user registered: ' + username,
+            created_at: new Date().toISOString()
+        }]);
 
-            if (checkError) throw checkError;
-
-            if (existing) {
-                errorMsg.textContent = '❌ Username already exists. Please choose another.';
-                errorMsg.style.display = 'block';
-                loader.style.display = 'none';
-                registerBtn.disabled = false;
-                registerBtn.textContent = '📝 Register';
-                return;
-            }
-
-            const { data: newUser, error: createError } = await supabaseClient
-                .from('gate_users')
-                .insert([{
-                    username: username,
-                    whatsapp: whatsapp,
-                    status: 'pending',
-                    registered_at: new Date().toISOString(),
-                    last_login: new Date().toISOString(),
-                    total_minutes: 0,
-                    is_online: false,
-                    device_info: gateState.deviceInfo
-                }])
-                .select()
-                .single();
-
-            if (createError) throw createError;
-
-            await supabaseClient.from('gate_activity_log').insert([{
-                user_id: newUser.id,
-                action: 'register',
-                details: `New user registered: ${username}`,
-                created_at: new Date().toISOString()
-            }]);
-
-            successMsg.textContent = '✅ Registration successful! Please wait for admin verification. You will be notified when verified.';
+        if (successMsg) {
+            successMsg.textContent = '✅ Registration successful! Please wait for admin verification.';
             successMsg.style.display = 'block';
-            loader.style.display = 'none';
+        }
+        if (loader) loader.style.display = 'none';
+        if (registerBtn) {
             registerBtn.textContent = '✅ Registered!';
+        }
 
-            localStorage.setItem('gate_username', username);
+        localStorage.setItem('gate_username', username);
 
-            setTimeout(() => {
-                closeGateLogin();
-                showToast('✅ Registered! Awaiting admin verification.', 'success');
-            }, 2000);
+        setTimeout(function() {
+            closeGateLogin();
+            showToast('✅ Registered! Awaiting admin verification.', 'success');
+        }, 2000);
 
-        } catch (e) {
-            console.error('❌ Register error:', e);
+    } catch (e) {
+        console.error('❌ Register error:', e);
+        if (errorMsg) {
             errorMsg.textContent = '❌ ' + (e.message || 'Registration failed. Please try again.');
             errorMsg.style.display = 'block';
-            loader.style.display = 'none';
+        }
+        if (loader) loader.style.display = 'none';
+        if (registerBtn) {
             registerBtn.disabled = false;
             registerBtn.textContent = '📝 Register';
         }
     }
+}
 
-    // ============================================================
-    // ============ HANDLE LOGIN ============
-    // ============================================================
+// ============================================================
+// ============ HANDLE LOGIN ============
+// ============================================================
+async function handleGateLogin() {
+    var usernameInput = document.getElementById('gateUsername');
+    var whatsappInput = document.getElementById('gateWhatsapp');
+    
+    if (!usernameInput || !whatsappInput) {
+        console.error('❌ Login inputs not found');
+        return;
+    }
+    
+    var username = usernameInput.value.trim();
+    var whatsapp = whatsappInput.value.trim();
+    
+    var errorMsg = document.getElementById('gateErrorMsg');
+    var statusMsg = document.getElementById('gateStatusMsg');
+    var successMsg = document.getElementById('gateSuccessMsg');
+    var loader = document.getElementById('gateLoader');
+    var loginBtn = document.getElementById('gateLoginBtn');
 
-    async function handleGateLogin() {
-        const username = document.getElementById('gateUsername').value.trim();
-        const whatsapp = document.getElementById('gateWhatsapp').value.trim();
-        
-        const errorMsg = document.getElementById('gateErrorMsg');
-        const statusMsg = document.getElementById('gateStatusMsg');
-        const successMsg = document.getElementById('gateSuccessMsg');
-        const loader = document.getElementById('gateLoader');
-        const loginBtn = document.getElementById('gateLoginBtn');
+    if (errorMsg) { errorMsg.style.display = 'none'; errorMsg.textContent = ''; }
+    if (statusMsg) { statusMsg.style.display = 'none'; statusMsg.textContent = ''; }
+    if (successMsg) { successMsg.style.display = 'none'; successMsg.textContent = ''; }
 
-        errorMsg.style.display = 'none';
-        statusMsg.style.display = 'none';
-        successMsg.style.display = 'none';
-
-        if (!username || username.length < 2) {
+    if (!username || username.length < 2) {
+        if (errorMsg) {
             errorMsg.textContent = '⚠️ Please enter your username';
             errorMsg.style.display = 'block';
-            return;
         }
+        return;
+    }
 
-        if (!whatsapp || whatsapp.length < 6) {
+    if (!whatsapp || whatsapp.length < 6) {
+        if (errorMsg) {
             errorMsg.textContent = '⚠️ Please enter your WhatsApp number';
             errorMsg.style.display = 'block';
+        }
+        return;
+    }
+
+    if (loader) loader.style.display = 'block';
+    if (loginBtn) {
+        loginBtn.disabled = true;
+        loginBtn.textContent = '⏳ Checking...';
+    }
+
+    try {
+        if (!supabaseClient) {
+            initSupabase();
+            if (!supabaseClient) {
+                if (errorMsg) {
+                    errorMsg.textContent = '❌ Supabase not connected. Please try again.';
+                    errorMsg.style.display = 'block';
+                }
+                if (loader) loader.style.display = 'none';
+                if (loginBtn) {
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '🔑 Login';
+                }
+                return;
+            }
+        }
+
+        var { data: user, error } = await supabaseClient
+            .from('gate_users')
+            .select('*')
+            .eq('username', username)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        if (!user) {
+            if (errorMsg) {
+                errorMsg.textContent = '❌ User not found. Please register first.';
+                errorMsg.style.display = 'block';
+            }
+            if (loader) loader.style.display = 'none';
+            if (loginBtn) {
+                loginBtn.disabled = false;
+                loginBtn.textContent = '🔑 Login';
+            }
             return;
         }
 
-        loader.style.display = 'block';
-        loginBtn.disabled = true;
-        loginBtn.textContent = '⏳ Checking...';
-
-        try {
-            if (!supabaseClient) {
-                initSupabase();
-                if (!supabaseClient) {
-                    errorMsg.textContent = '❌ Supabase not connected. Please try again.';
-                    errorMsg.style.display = 'block';
-                    loader.style.display = 'none';
-                    loginBtn.disabled = false;
-                    loginBtn.textContent = '🔑 Login';
-                    return;
-                }
-            }
-
-            const { data: user, error } = await supabaseClient
-                .from('gate_users')
-                .select('*')
-                .eq('username', username)
-                .maybeSingle();
-
-            if (error) throw error;
-
-            if (!user) {
-                errorMsg.textContent = '❌ User not found. Please register first.';
-                errorMsg.style.display = 'block';
-                loader.style.display = 'none';
-                loginBtn.disabled = false;
-                loginBtn.textContent = '🔑 Login';
-                return;
-            }
-
-            if (user.whatsapp !== whatsapp) {
+        if (user.whatsapp !== whatsapp) {
+            if (errorMsg) {
                 errorMsg.textContent = '❌ WhatsApp number does not match our records.';
                 errorMsg.style.display = 'block';
-                loader.style.display = 'none';
+            }
+            if (loader) loader.style.display = 'none';
+            if (loginBtn) {
                 loginBtn.disabled = false;
                 loginBtn.textContent = '🔑 Login';
-                return;
             }
+            return;
+        }
 
-            if (user.status === 'cancelled') {
+        if (user.status === 'cancelled') {
+            if (errorMsg) {
                 errorMsg.textContent = '❌ Your access has been cancelled. Contact admin.';
                 errorMsg.style.display = 'block';
-                loader.style.display = 'none';
+            }
+            if (loader) loader.style.display = 'none';
+            if (loginBtn) {
                 loginBtn.disabled = false;
                 loginBtn.textContent = '🔑 Login';
-                return;
             }
+            return;
+        }
 
-            if (user.status === 'pending') {
+        if (user.status === 'pending') {
+            if (statusMsg) {
                 statusMsg.textContent = '⏳ Your account is pending verification. Admin will verify you shortly.';
                 statusMsg.style.display = 'block';
-                loader.style.display = 'none';
+            }
+            if (loader) loader.style.display = 'none';
+            if (loginBtn) {
                 loginBtn.disabled = false;
                 loginBtn.textContent = '🔑 Login';
-                return;
             }
+            return;
+        }
 
-            if (user.status === 'verified') {
-                console.log('✅ User verified - making permanent for:', username);
-                
-                const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        if (user.status === 'verified') {
+            console.log('✅ User verified - making permanent for:', username);
+            
+            var sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
 
-                await supabaseClient
-                    .from('gate_users')
-                    .update({
-                        is_online: true,
-                        session_id: sessionId,
-                        last_login: new Date().toISOString(),
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', user.id);
+            await supabaseClient
+                .from('gate_users')
+                .update({
+                    is_online: true,
+                    session_id: sessionId,
+                    last_login: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                })
+                .eq('id', user.id);
 
-                await supabaseClient
-                    .from('gate_sessions')
-                    .insert([{
-                        user_id: user.id,
-                        session_id: sessionId,
-                        started_at: new Date().toISOString(),
-                        device_info: gateState.deviceInfo,
-                        is_active: true,
-                        duration_minutes: 0
-                    }]);
+            await supabaseClient
+                .from('gate_sessions')
+                .insert([{
+                    user_id: user.id,
+                    session_id: sessionId,
+                    started_at: new Date().toISOString(),
+                    device_info: gateState.deviceInfo,
+                    is_active: true,
+                    duration_minutes: 0
+                }]);
 
-                makeVerificationPermanent(username);
+            makeVerificationPermanent(username);
 
+            if (successMsg) {
                 successMsg.textContent = '✅ Login successful! You now have permanent access.';
                 successMsg.style.display = 'block';
-                loader.style.display = 'none';
-                loginBtn.textContent = '✅ Success';
-
-                setTimeout(() => {
-                    closeGateLogin();
-                    document.getElementById('gateAccessBlocker').style.display = 'none';
-                    document.getElementById('gateTriggerButton').style.display = 'none';
-                    showToast('✅ Verified! Permanent access granted.', 'success');
-                }, 1000);
             }
+            if (loader) loader.style.display = 'none';
+            if (loginBtn) loginBtn.textContent = '✅ Success';
 
-        } catch (e) {
-            console.error('❌ Login error:', e);
+            setTimeout(function() {
+                closeGateLogin();
+                var blocker = document.getElementById('gateAccessBlocker');
+                var triggerBtn = document.getElementById('gateTriggerButton');
+                if (blocker) blocker.style.display = 'none';
+                if (triggerBtn) triggerBtn.style.display = 'none';
+                showToast('✅ Verified! Permanent access granted.', 'success');
+            }, 1000);
+        }
+
+    } catch (e) {
+        console.error('❌ Login error:', e);
+        if (errorMsg) {
             errorMsg.textContent = '❌ ' + (e.message || 'Login failed. Please try again.');
             errorMsg.style.display = 'block';
-            loader.style.display = 'none';
+        }
+        if (loader) loader.style.display = 'none';
+        if (loginBtn) {
             loginBtn.disabled = false;
             loginBtn.textContent = '🔑 Login';
         }
     }
+}
 
-    // ============================================================
-    // ============ CHECK VERIFICATION STATUS ON APP LOAD ============
-    // ============================================================
+// ============================================================
+// ============ CHECK VERIFICATION STATUS ON APP LOAD ============
+// ============================================================
+async function checkGateStatusOnLoad() {
+    setTimeout(async function() {
+        try {
+            var isPermanent = localStorage.getItem('gate_verified_permanent') === 'true';
+            var storedUsername = localStorage.getItem('gate_username');
 
-    async function checkGateStatusOnLoad() {
-        setTimeout(async () => {
-            try {
-                const isPermanent = localStorage.getItem('gate_verified_permanent') === 'true';
-                const storedUsername = localStorage.getItem('gate_username');
-
-                if (isPermanent && storedUsername) {
-                    console.log('✅ User is permanently verified:', storedUsername);
-                    
-                    if (!supabaseClient) {
-                        initSupabase();
-                        await new Promise(resolve => setTimeout(resolve, 1000));
-                    }
-
-                    if (supabaseClient) {
-                        const { data: user, error } = await supabaseClient
-                            .from('gate_users')
-                            .select('*')
-                            .eq('username', storedUsername)
-                            .maybeSingle();
-
-                        if (error) throw error;
-
-                        if (user && user.status === 'verified') {
-                            if (user.status === 'cancelled') {
-                                localStorage.removeItem('gate_verified_permanent');
-                                localStorage.removeItem('gate_username');
-                                gateState.isPermanentlyVerified = false;
-                                gateState.isVerified = false;
-                                document.getElementById('gateAccessBlocker').style.display = 'flex';
-                                document.getElementById('gateTriggerButton').style.display = 'block';
-                                return;
-                            }
-
-                            gateState.isPermanentlyVerified = true;
-                            gateState.isVerified = true;
-                            gateState.isLoggedIn = true;
-                            gateState.username = storedUsername;
-                            
-                            document.getElementById('gateTriggerButton').style.display = 'none';
-                            document.getElementById('gateAccessBlocker').style.display = 'none';
-                            
-                            console.log('✅ Permanent verification restored for:', storedUsername);
-                            return;
-                        }
-                    }
+            if (isPermanent && storedUsername) {
+                console.log('✅ User is permanently verified:', storedUsername);
+                
+                if (!supabaseClient) {
+                    initSupabase();
+                    await new Promise(function(resolve) { setTimeout(resolve, 1000); });
                 }
 
-                if (storedUsername && !isPermanent) {
-                    console.log('⏳ Checking pending status for:', storedUsername);
-                    
-                    if (supabaseClient) {
-                        const { data: user, error } = await supabaseClient
-                            .from('gate_users')
-                            .select('*')
-                            .eq('username', storedUsername)
-                            .maybeSingle();
-
-                        if (error) throw error;
-
-                        if (user && user.status === 'verified') {
-                            makeVerificationPermanent(storedUsername);
-                            return;
-                        }
-
-                        if (user && user.status === 'pending') {
-                            document.getElementById('gateAccessBlocker').style.display = 'flex';
-                            return;
-                        }
-
-                        if (user && user.status === 'cancelled') {
-                            localStorage.removeItem('gate_username');
-                            document.getElementById('gateAccessBlocker').style.display = 'flex';
-                            return;
-                        }
-                    }
-                }
-
-                console.log('🔒 User not verified - showing blocker');
-                document.getElementById('gateAccessBlocker').style.display = 'flex';
-
-            } catch (e) {
-                console.error('❌ Gate status check error:', e);
-                document.getElementById('gateAccessBlocker').style.display = 'flex';
-            }
-        }, 1500);
-    }
-
-    // ============================================================
-    // ============ LOGOUT FUNCTION ============
-    // ============================================================
-
-    window.logoutGateUser = async function() {
-        if (gateState.isLoggedIn && gateState.username && supabaseClient) {
-            try {
-                const { data: user } = await supabaseClient
-                    .from('gate_users')
-                    .select('id')
-                    .eq('username', gateState.username)
-                    .maybeSingle();
-
-                if (user) {
-                    await supabaseClient
-                        .from('gate_sessions')
-                        .update({
-                            ended_at: new Date().toISOString(),
-                            is_active: false
-                        })
-                        .eq('user_id', user.id)
-                        .eq('is_active', true);
-
-                    await supabaseClient
+                if (supabaseClient) {
+                    var { data: user, error } = await supabaseClient
                         .from('gate_users')
-                        .update({
-                            is_online: false,
-                            session_id: null
-                        })
-                        .eq('id', user.id);
-                }
-            } catch (e) {
-                console.error('Logout error:', e);
-            }
-            
-            localStorage.removeItem('gate_verified_permanent');
-            localStorage.removeItem('gate_username');
-            gateState.isPermanentlyVerified = false;
-            gateState.isLoggedIn = false;
-            gateState.username = null;
-            gateState.isVerified = false;
-            gateState.sessionActive = false;
-            gateState.status = 'pending';
-            
-            document.getElementById('gateTriggerButton').style.display = 'block';
-            document.getElementById('gateAccessBlocker').style.display = 'flex';
-            
-            console.log('🔒 User logged out - permanent status cleared');
-            showToast('Logged out successfully', 'success');
-        }
-    };
+                        .select('*')
+                        .eq('username', storedUsername)
+                        .maybeSingle();
 
+                    if (error) throw error;
+
+                    if (user && user.status === 'verified') {
+                        if (user.status === 'cancelled') {
+                            localStorage.removeItem('gate_verified_permanent');
+                            localStorage.removeItem('gate_username');
+                            gateState.isPermanentlyVerified = false;
+                            gateState.isVerified = false;
+                            var blocker = document.getElementById('gateAccessBlocker');
+                            var triggerBtn = document.getElementById('gateTriggerButton');
+                            if (blocker) blocker.style.display = 'flex';
+                            if (triggerBtn) triggerBtn.style.display = 'block';
+                            return;
+                        }
+
+                        gateState.isPermanentlyVerified = true;
+                        gateState.isVerified = true;
+                        gateState.isLoggedIn = true;
+                        gateState.username = storedUsername;
+                        
+                        var blocker = document.getElementById('gateAccessBlocker');
+                        var triggerBtn = document.getElementById('gateTriggerButton');
+                        if (triggerBtn) triggerBtn.style.display = 'none';
+                        if (blocker) blocker.style.display = 'none';
+                        
+                        console.log('✅ Permanent verification restored for:', storedUsername);
+                        return;
+                    }
+                }
+            }
+
+            if (storedUsername && !isPermanent) {
+                console.log('⏳ Checking pending status for:', storedUsername);
+                
+                if (supabaseClient) {
+                    var { data: user, error } = await supabaseClient
+                        .from('gate_users')
+                        .select('*')
+                        .eq('username', storedUsername)
+                        .maybeSingle();
+
+                    if (error) throw error;
+
+                    if (user && user.status === 'verified') {
+                        makeVerificationPermanent(storedUsername);
+                        return;
+                    }
+
+                    if (user && user.status === 'pending') {
+                        var blocker = document.getElementById('gateAccessBlocker');
+                        if (blocker) blocker.style.display = 'flex';
+                        return;
+                    }
+
+                    if (user && user.status === 'cancelled') {
+                        localStorage.removeItem('gate_username');
+                        var blocker = document.getElementById('gateAccessBlocker');
+                        if (blocker) blocker.style.display = 'flex';
+                        return;
+                    }
+                }
+            }
+
+            console.log('🔒 User not verified - showing blocker');
+            var blocker = document.getElementById('gateAccessBlocker');
+            if (blocker) blocker.style.display = 'flex';
+
+        } catch (e) {
+            console.error('❌ Gate status check error:', e);
+            var blocker = document.getElementById('gateAccessBlocker');
+            if (blocker) blocker.style.display = 'flex';
+        }
+    }, 1500);
+}
+
+// ============================================================
+// ============ LOGOUT FUNCTION ============
+// ============================================================
+window.logoutGateUser = async function() {
+    if (gateState.isLoggedIn && gateState.username && supabaseClient) {
+        try {
+            var { data: user } = await supabaseClient
+                .from('gate_users')
+                .select('id')
+                .eq('username', gateState.username)
+                .maybeSingle();
+
+            if (user) {
+                await supabaseClient
+                    .from('gate_sessions')
+                    .update({
+                        ended_at: new Date().toISOString(),
+                        is_active: false
+                    })
+                    .eq('user_id', user.id)
+                    .eq('is_active', true);
+
+                await supabaseClient
+                    .from('gate_users')
+                    .update({
+                        is_online: false,
+                        session_id: null
+                    })
+                    .eq('id', user.id);
+            }
+        } catch (e) {
+            console.error('Logout error:', e);
+        }
+        
+        localStorage.removeItem('gate_verified_permanent');
+        localStorage.removeItem('gate_username');
+        gateState.isPermanentlyVerified = false;
+        gateState.isLoggedIn = false;
+        gateState.username = null;
+        gateState.isVerified = false;
+        gateState.sessionActive = false;
+        gateState.status = 'pending';
+        
+        var triggerBtn = document.getElementById('gateTriggerButton');
+        var blocker = document.getElementById('gateAccessBlocker');
+        if (triggerBtn) triggerBtn.style.display = 'block';
+        if (blocker) blocker.style.display = 'flex';
+        
+        console.log('🔒 User logged out');
+        showToast('Logged out successfully', 'success');
+    }
+};
     // ============================================================
     // ============ ORIGINAL NAVIGATION FUNCTIONS WITH GATE CHECK ============
     // ============================================================
