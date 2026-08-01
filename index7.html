@@ -12,6 +12,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>BetPawa</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js">
+    </script>
 <style>
     * {
         margin: 0;
@@ -656,11 +658,369 @@
   50% { width: 100%; }
   100% { width: 0%; }
 }
+
+/* ============================================================
+   GATE LOGIN/REGISTER MODAL - HIDDEN UNTIL VIEW CASHBACK CLICKED
+   ============================================================ */
+#gateLoginOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    backdrop-filter: blur(8px);
+    z-index: 999999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: gateFadeIn 0.3s ease;
+}
+
+@keyframes gateFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+#gateLoginModal {
+    background: #1a1a2e;
+    border-radius: 20px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 90%;
+    border: 1px solid rgba(255,255,255,0.08);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+    position: relative;
+}
+
+#gateLoginModal h2 {
+    color: white;
+    font-size: 24px;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 4px;
+}
+
+#gateLoginModal .subtitle {
+    color: #8a9bb5;
+    font-size: 13px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#gateLoginModal .form-group {
+    margin-bottom: 14px;
+}
+
+#gateLoginModal label {
+    color: #9ea0a5;
+    font-size: 12px;
+    font-weight: 500;
+    display: block;
+    margin-bottom: 4px;
+}
+
+#gateLoginModal input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    transition: border 0.2s;
+    font-family: 'Inter', sans-serif;
+}
+
+#gateLoginModal input:focus {
+    border-color: #28a71d;
+}
+
+#gateLoginModal input::placeholder {
+    color: #4a5a7a;
+}
+
+#gateLoginModal .btn-primary {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #28a71d, #1d7a15);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 4px;
+}
+
+#gateLoginModal .btn-primary:hover {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+#gateLoginModal .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#gateLoginModal .btn-secondary {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 10px;
+    color: #9ea0a5;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 8px;
+}
+
+#gateLoginModal .btn-secondary:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.25);
+}
+
+#gateLoginModal .error-msg {
+    color: #f87171;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 8px;
+    display: none;
+}
+
+#gateLoginModal .status-msg {
+    color: #fbbf24;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 8px;
+    display: none;
+}
+
+#gateLoginModal .success-msg {
+    color: #34d399;
+    font-size: 12px;
+    text-align: center;
+    margin-top: 8px;
+    display: none;
+}
+
+#gateLoginModal .close-gate {
+    position: absolute;
+    top: 12px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 22px;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+#gateLoginModal .close-gate:hover {
+    color: white;
+}
+
+#gateLoginModal .gate-loader {
+    display: none;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255,255,255,0.1);
+    border-top: 3px solid #28a71d;
+    border-radius: 50%;
+    animation: spinLoader 0.8s linear infinite;
+    margin: 10px auto 0;
+}
+
+#gateLoginModal .toggle-link {
+    color: #60a5fa;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+#gateLoginModal .toggle-link:hover {
+    color: #93bbfc;
+}
+
+#gateLoginModal .form-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+#gateLoginModal .form-divider::before,
+#gateLoginModal .form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.08);
+}
+
+#gateLoginModal .form-divider span {
+    color: #4a5a7a;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* GATE ACCESS BLOCKER - Shows when NOT verified and trying to access game */
+#gateAccessBlocker {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.92);
+    backdrop-filter: blur(8px);
+    z-index: 999998;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    padding: 20px;
+}
+
+#gateAccessBlocker .blocker-icon {
+    font-size: 60px;
+    margin-bottom: 16px;
+    opacity: 0.4;
+}
+
+#gateAccessBlocker .blocker-text {
+    color: #8a9bb5;
+    font-size: 16px;
+    text-align: center;
+    max-width: 320px;
+    line-height: 1.6;
+}
+
+#gateAccessBlocker .blocker-sub {
+    color: #4a5a7a;
+    font-size: 13px;
+    text-align: center;
+    margin-top: 8px;
+}
+
+#gateAccessBlocker .blocker-btn {
+    margin-top: 20px;
+    padding: 12px 32px;
+    background: linear-gradient(135deg, #28a71d, #1d7a15);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+#gateAccessBlocker .blocker-btn:hover {
+    transform: scale(0.98);
+    opacity: 0.9;
+}
+
+/* VERIFIED BADGE - shows when user is verified */
+#verifiedBadge {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(40, 167, 29, 0.9);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
 </style>
 </head>
 <body>
 
+<!-- VERIFIED BADGE - shows when user is verified -->
+<div id="verifiedBadge">✅ Verified</div>
 
+<!-- ============================================================
+     GATE ACCESS BLOCKER - Shows when NOT verified
+     ============================================================ -->
+<div id="gateAccessBlocker">
+    <div class="blocker-icon">🔒</div>
+    <div class="blocker-text">Access to Aviator is restricted.</div>
+    <div class="blocker-sub">You need to register and be verified by an admin.</div>
+    <button class="blocker-btn" onclick="closeBlockerAndShowLogin()">🛡️ Register / Login</button>
+</div>
+
+<!-- ============================================================
+     GATE LOGIN/REGISTER OVERLAY - Hidden until triggered
+     ============================================================ -->
+<div id="gateLoginOverlay">
+    <div id="gateLoginModal">
+        <button class="close-gate" onclick="closeGateLogin()">✕</button>
+        
+        <!-- Login Form (default visible) -->
+        <div id="loginForm">
+            <h2>🛡️ Login</h2>
+            <div class="subtitle">Enter your credentials to access the Aviator</div>
+            
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="gateUsername" placeholder="Enter your username" />
+            </div>
+            
+            <div class="form-group">
+                <label>WhatsApp Number</label>
+                <input type="tel" id="gateWhatsapp" placeholder="e.g. 256700000000" />
+            </div>
+            
+            <button class="btn-primary" id="gateLoginBtn" onclick="handleGateLogin()">🔑 Login</button>
+            
+            <div class="gate-loader" id="gateLoader"></div>
+            <div class="error-msg" id="gateErrorMsg"></div>
+            <div class="status-msg" id="gateStatusMsg"></div>
+            <div class="success-msg" id="gateSuccessMsg"></div>
+            
+            <div class="form-divider"><span>or</span></div>
+            
+            <button class="btn-secondary" onclick="showRegisterForm()">📝 Create New Account</button>
+        </div>
+        
+        <!-- Register Form (hidden by default) -->
+        <div id="registerForm" style="display:none;">
+            <h2>📝 Register</h2>
+            <div class="subtitle">Create your account to access the Aviator</div>
+            
+            <div class="form-group">
+                <label>Choose Username</label>
+                <input type="text" id="regUsername" placeholder="Choose a unique username" />
+            </div>
+            
+            <div class="form-group">
+                <label>WhatsApp Number</label>
+                <input type="tel" id="regWhatsapp" placeholder="e.g. 256700000000" />
+            </div>
+            
+            <button class="btn-primary" id="gateRegisterBtn" onclick="handleGateRegister()">📝 Register</button>
+            
+            <div class="gate-loader" id="gateRegisterLoader"></div>
+            <div class="error-msg" id="regErrorMsg"></div>
+            <div class="status-msg" id="regStatusMsg"></div>
+            <div class="success-msg" id="regSuccessMsg"></div>
+            
+            <div class="form-divider"><span>or</span></div>
+            
+            <button class="btn-secondary" onclick="showLoginForm()">🔑 Already have an account? Login</button>
+        </div>
+    </div>
+</div>
 
 
     <!-- ============================================================
@@ -968,7 +1328,8 @@ overflow: hidden;
     <div style="color: #111; font-size: 14px; line-height: 1.5; margin-bottom: 12px;">
       Your 15% Casino Cashback has been credited to your betPawa account and is ready to use. No limits, use it now!
     </div>
-    <div style="
+    <!-- VIEW CASHBACK BUTTON - HIDDEN GATE TRIGGER -->
+    <div id="gateTriggerButton" onclick="handleGateTrigger()" style="
       border: 1px solid #ddd;
       border-radius: 8px;
       padding: 10px;
@@ -1238,7 +1599,7 @@ overflow: hidden;
     
 
 <!-- ============================================================
-     PAGE 2: betPawa CASINO UI
+     PAGE 2: betPawa CASINO UI - COMPLETELY UNCHANGED
      ============================================================ -->
      <div id="page2" style="
      display: none;
@@ -1275,9 +1636,9 @@ overflow: hidden;
        <div style="display: flex; align-items: center; gap: 6px;">
          <span style="font-size: 10px;">VoLTE1</span>
          <svg width="16" height="12" viewBox="0 0 24 18" fill="none" stroke="white" stroke-width="1.5">
-           <rect x="0" y="12" width="4" height="6" rx="1"/>
+           <rect x="0" y="4" width="4" height="6" rx="1"/>
            <rect x="6" y="8" width="4" height="10" rx="1"/>
-           <rect x="12" y="4" width="4" height="14" rx="1"/>
+           <rect x="12" y="0" width="4" height="14" rx="1"/>
            <rect x="18" y="0" width="4" height="18" rx="1"/>
          </svg>
          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
@@ -1537,7 +1898,6 @@ overflow: hidden;
        </div>
    
           <!-- "Most Popular in Uganda" Section -->
-        <!-- "Most Popular in Uganda" Section -->
         <div style="margin-bottom: 16px;">
           <!-- Header -->
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
@@ -1641,7 +2001,7 @@ overflow: hidden;
     
           <!-- Grid Row 2 -->
           <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 8px;">
-            <!-- Row 2 - Col 1 (Red Border) - CLICKABLE -->
+            <!-- Row 2 - Col 1 (Red Border) - ORIGINAL AVIATOR BUTTON - UNCHANGED -->
             <div onclick="goToPage3()" style="
               aspect-ratio: 1/1;
               background: #4a1a1a;
@@ -2145,44 +2505,6 @@ overflow: hidden;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     <div class="app">
        <!-- HEADER -->
        <div class="header-container" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: #272727; width: 100%; box-sizing: border-box; height: 30px; border-bottom: 0px solid #121213; margin-top: -22px;">
@@ -2394,7 +2716,6 @@ overflow: hidden;
             <span style="color: white; font-weight: 700; font-size: 11px;">SPRIBE</span>
         </div>
     </div>
-    <!-- TEMPORARY DEBUG BUTTON -->
     
     <!-- DASHBOARD MODAL -->
     <div id="dashboardModal" style="display: none;" class="modal-overlay">
@@ -2460,7 +2781,678 @@ overflow: hidden;
     </div>
 
     <script>
+    // ============================================================
+    // ============ SUPABASE CONFIGURATION ============
+    // ============================================================
+    const SUPABASE_URL = 'https://wkdewqwqhopbwygsfdav.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_5QGobPerm0Bw973REoEvXg_Cs6n70lZ';
+    let supabaseClient = null;
+
+    function initSupabase() {
+        if (typeof supabase !== 'undefined' && supabase.createClient) {
+            try {
+                supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                console.log('✅ Supabase initialized for Gate System');
+                return true;
+            } catch (e) {
+                console.error('❌ Supabase init error:', e);
+                return false;
+            }
+        }
+        console.warn('⚠️ Supabase library not loaded - trying to load...');
+        if (typeof document !== 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
+            script.onload = function() {
+                console.log('✅ Supabase library loaded dynamically');
+                if (typeof supabase !== 'undefined' && supabase.createClient) {
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase client created');
+                }
+            };
+            script.onerror = function() {
+                console.error('❌ Failed to load Supabase library');
+            };
+            document.head.appendChild(script);
+        }
+        return false;
+    }
+
+    // ============================================================
+    // ============ GATE SYSTEM STATE ============
+    // ============================================================
+    let gateState = {
+        isLoggedIn: false,
+        username: null,
+        isVerified: false,
+        isCancelled: false,
+        sessionActive: false,
+        deviceInfo: navigator.userAgent || 'Unknown Device',
+        status: 'pending',
+        isPermanentlyVerified: false  // NEW: Once verified, never ask again
+    };
+
+    // ============================================================
+    // ============ TOGGLE LOGIN/REGISTER FORMS ============
+    // ============================================================
+    function showRegisterForm() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+        document.getElementById('regErrorMsg').style.display = 'none';
+        document.getElementById('regStatusMsg').style.display = 'none';
+        document.getElementById('regSuccessMsg').style.display = 'none';
+        document.getElementById('regErrorMsg').textContent = '';
+        document.getElementById('regStatusMsg').textContent = '';
+        document.getElementById('regSuccessMsg').textContent = '';
+    }
+
+    function showLoginForm() {
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('gateErrorMsg').style.display = 'none';
+        document.getElementById('gateStatusMsg').style.display = 'none';
+        document.getElementById('gateSuccessMsg').style.display = 'none';
+        document.getElementById('gateErrorMsg').textContent = '';
+        document.getElementById('gateStatusMsg').textContent = '';
+        document.getElementById('gateSuccessMsg').textContent = '';
+    }
+
+    // ============================================================
+    // ============ GATE TRIGGER (VIEW CASHBACK BUTTON) ============
+    // ============================================================
+
+    function handleGateTrigger() {
+        console.log('🛡️ Gate trigger clicked (VIEW CASHBACK)');
+        
+        // If user is permanently verified, hide all login elements and show full access
+        if (gateState.isPermanentlyVerified && gateState.isVerified) {
+            console.log('✅ User is permanently verified - hiding all login elements');
+            document.getElementById('gateTriggerButton').style.display = 'none';
+            document.getElementById('gateAccessBlocker').style.display = 'none';
+            document.getElementById('verifiedBadge').style.display = 'flex';
+            showToast('✅ You are verified! Full access granted.', 'success');
+            return;
+        }
+
+        // If user is already verified but not marked permanent (shouldn't happen)
+        if (gateState.isLoggedIn && gateState.isVerified && gateState.sessionActive) {
+            console.log('✅ User already logged in and verified');
+            // Make it permanent
+            gateState.isPermanentlyVerified = true;
+            document.getElementById('gateTriggerButton').style.display = 'none';
+            document.getElementById('gateAccessBlocker').style.display = 'none';
+            document.getElementById('verifiedBadge').style.display = 'flex';
+            showToast('✅ You are verified! Full access granted.', 'success');
+            return;
+        }
+
+        // Ensure Supabase is initialized
+        if (!supabaseClient) {
+            initSupabase();
+        }
+
+        // Show the login overlay - default to login form
+        showLoginForm();
+        showGateLogin();
+    }
+
+    function closeBlockerAndShowLogin() {
+        document.getElementById('gateAccessBlocker').style.display = 'none';
+        showLoginForm();
+        showGateLogin();
+    }
+
+    // ============================================================
+    // ============ GATE LOGIN FUNCTIONS ============
+    // ============================================================
+
+    function showGateLogin() {
+        const overlay = document.getElementById('gateLoginOverlay');
+        if (overlay) {
+            overlay.style.display = 'flex';
+            document.getElementById('gateUsername').value = '';
+            document.getElementById('gateWhatsapp').value = '';
+            document.getElementById('regUsername').value = '';
+            document.getElementById('regWhatsapp').value = '';
+            document.getElementById('gateErrorMsg').style.display = 'none';
+            document.getElementById('gateStatusMsg').style.display = 'none';
+            document.getElementById('gateSuccessMsg').style.display = 'none';
+            document.getElementById('gateLoader').style.display = 'none';
+            document.getElementById('gateLoginBtn').disabled = false;
+            document.getElementById('gateLoginBtn').textContent = '🔑 Login';
+            
+            setTimeout(() => {
+                document.getElementById('gateUsername').focus();
+            }, 300);
+        }
+    }
+
+    function closeGateLogin() {
+        const overlay = document.getElementById('gateLoginOverlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+    }
+
+    // ============================================================
+    // ============ MAKE VERIFICATION PERMANENT ============
+    // ============================================================
+
+    function makeVerificationPermanent(username) {
+        gateState.isPermanentlyVerified = true;
+        gateState.isLoggedIn = true;
+        gateState.isVerified = true;
+        gateState.username = username;
+        localStorage.setItem('gate_verified_permanent', 'true');
+        localStorage.setItem('gate_username', username);
+        
+        // Hide all login-related elements
+        document.getElementById('gateTriggerButton').style.display = 'none';
+        document.getElementById('gateAccessBlocker').style.display = 'none';
+        document.getElementById('verifiedBadge').style.display = 'flex';
+        
+        console.log('✅ Verification made permanent for:', username);
+    }
+
+    // ============================================================
+    // ============ HANDLE REGISTER ============
+    // ============================================================
+
+    async function handleGateRegister() {
+        const username = document.getElementById('regUsername').value.trim();
+        const whatsapp = document.getElementById('regWhatsapp').value.trim();
+        
+        const errorMsg = document.getElementById('regErrorMsg');
+        const statusMsg = document.getElementById('regStatusMsg');
+        const successMsg = document.getElementById('regSuccessMsg');
+        const loader = document.getElementById('gateRegisterLoader');
+        const registerBtn = document.getElementById('gateRegisterBtn');
+
+        errorMsg.style.display = 'none';
+        statusMsg.style.display = 'none';
+        successMsg.style.display = 'none';
+
+        if (!username || username.length < 2) {
+            errorMsg.textContent = '⚠️ Please enter a valid username (min 2 characters)';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        if (!whatsapp || whatsapp.length < 6) {
+            errorMsg.textContent = '⚠️ Please enter a valid WhatsApp number';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        loader.style.display = 'block';
+        registerBtn.disabled = true;
+        registerBtn.textContent = '⏳ Registering...';
+
+        try {
+            if (!supabaseClient) {
+                initSupabase();
+                if (!supabaseClient) {
+                    errorMsg.textContent = '❌ Supabase not connected. Please try again.';
+                    errorMsg.style.display = 'block';
+                    loader.style.display = 'none';
+                    registerBtn.disabled = false;
+                    registerBtn.textContent = '📝 Register';
+                    return;
+                }
+            }
+
+            const { data: existing, error: checkError } = await supabaseClient
+                .from('gate_users')
+                .select('*')
+                .eq('username', username)
+                .maybeSingle();
+
+            if (checkError) throw checkError;
+
+            if (existing) {
+                errorMsg.textContent = '❌ Username already exists. Please choose another.';
+                errorMsg.style.display = 'block';
+                loader.style.display = 'none';
+                registerBtn.disabled = false;
+                registerBtn.textContent = '📝 Register';
+                return;
+            }
+
+            const { data: newUser, error: createError } = await supabaseClient
+                .from('gate_users')
+                .insert([{
+                    username: username,
+                    whatsapp: whatsapp,
+                    status: 'pending',
+                    registered_at: new Date().toISOString(),
+                    last_login: new Date().toISOString(),
+                    total_minutes: 0,
+                    is_online: false,
+                    device_info: gateState.deviceInfo
+                }])
+                .select()
+                .single();
+
+            if (createError) throw createError;
+
+            await supabaseClient.from('gate_activity_log').insert([{
+                user_id: newUser.id,
+                action: 'register',
+                details: `New user registered: ${username}`,
+                created_at: new Date().toISOString()
+            }]);
+
+            successMsg.textContent = '✅ Registration successful! Please wait for admin verification. You will be notified when verified.';
+            successMsg.style.display = 'block';
+            loader.style.display = 'none';
+            registerBtn.textContent = '✅ Registered!';
+
+            // Store username for later check
+            localStorage.setItem('gate_username', username);
+
+            setTimeout(() => {
+                closeGateLogin();
+                showToast('✅ Registered! Awaiting admin verification.', 'success');
+            }, 2000);
+
+        } catch (e) {
+            console.error('❌ Register error:', e);
+            errorMsg.textContent = '❌ ' + (e.message || 'Registration failed. Please try again.');
+            errorMsg.style.display = 'block';
+            loader.style.display = 'none';
+            registerBtn.disabled = false;
+            registerBtn.textContent = '📝 Register';
+        }
+    }
+
+    // ============================================================
+    // ============ HANDLE LOGIN ============
+    // ============================================================
+
+    async function handleGateLogin() {
+        const username = document.getElementById('gateUsername').value.trim();
+        const whatsapp = document.getElementById('gateWhatsapp').value.trim();
+        
+        const errorMsg = document.getElementById('gateErrorMsg');
+        const statusMsg = document.getElementById('gateStatusMsg');
+        const successMsg = document.getElementById('gateSuccessMsg');
+        const loader = document.getElementById('gateLoader');
+        const loginBtn = document.getElementById('gateLoginBtn');
+
+        errorMsg.style.display = 'none';
+        statusMsg.style.display = 'none';
+        successMsg.style.display = 'none';
+
+        if (!username || username.length < 2) {
+            errorMsg.textContent = '⚠️ Please enter your username';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        if (!whatsapp || whatsapp.length < 6) {
+            errorMsg.textContent = '⚠️ Please enter your WhatsApp number';
+            errorMsg.style.display = 'block';
+            return;
+        }
+
+        loader.style.display = 'block';
+        loginBtn.disabled = true;
+        loginBtn.textContent = '⏳ Checking...';
+
+        try {
+            if (!supabaseClient) {
+                initSupabase();
+                if (!supabaseClient) {
+                    errorMsg.textContent = '❌ Supabase not connected. Please try again.';
+                    errorMsg.style.display = 'block';
+                    loader.style.display = 'none';
+                    loginBtn.disabled = false;
+                    loginBtn.textContent = '🔑 Login';
+                    return;
+                }
+            }
+
+            const { data: user, error } = await supabaseClient
+                .from('gate_users')
+                .select('*')
+                .eq('username', username)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (!user) {
+                errorMsg.textContent = '❌ User not found. Please register first.';
+                errorMsg.style.display = 'block';
+                loader.style.display = 'none';
+                loginBtn.disabled = false;
+                loginBtn.textContent = '🔑 Login';
+                return;
+            }
+
+            // Verify WhatsApp matches
+            if (user.whatsapp !== whatsapp) {
+                errorMsg.textContent = '❌ WhatsApp number does not match our records.';
+                errorMsg.style.display = 'block';
+                loader.style.display = 'none';
+                loginBtn.disabled = false;
+                loginBtn.textContent = '🔑 Login';
+                return;
+            }
+
+            // Check status
+            if (user.status === 'cancelled') {
+                errorMsg.textContent = '❌ Your access has been cancelled. Contact admin.';
+                errorMsg.style.display = 'block';
+                loader.style.display = 'none';
+                loginBtn.disabled = false;
+                loginBtn.textContent = '🔑 Login';
+                return;
+            }
+
+            if (user.status === 'pending') {
+                statusMsg.textContent = '⏳ Your account is pending verification. Admin will verify you shortly.';
+                statusMsg.style.display = 'block';
+                loader.style.display = 'none';
+                loginBtn.disabled = false;
+                loginBtn.textContent = '🔑 Login';
+                return;
+            }
+
+            if (user.status === 'verified') {
+                // USER IS VERIFIED - MAKE IT PERMANENT
+                console.log('✅ User verified - making permanent for:', username);
+                
+                // Start a session
+                const sessionId = `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+                await supabaseClient
+                    .from('gate_users')
+                    .update({
+                        is_online: true,
+                        session_id: sessionId,
+                        last_login: new Date().toISOString(),
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', user.id);
+
+                await supabaseClient
+                    .from('gate_sessions')
+                    .insert([{
+                        user_id: user.id,
+                        session_id: sessionId,
+                        started_at: new Date().toISOString(),
+                        device_info: gateState.deviceInfo,
+                        is_active: true,
+                        duration_minutes: 0
+                    }]);
+
+                // Make verification PERMANENT
+                makeVerificationPermanent(username);
+
+                successMsg.textContent = '✅ Login successful! You now have permanent access.';
+                successMsg.style.display = 'block';
+                loader.style.display = 'none';
+                loginBtn.textContent = '✅ Success';
+
+                setTimeout(() => {
+                    closeGateLogin();
+                    document.getElementById('gateAccessBlocker').style.display = 'none';
+                    document.getElementById('gateTriggerButton').style.display = 'none';
+                    document.getElementById('verifiedBadge').style.display = 'flex';
+                    showToast('✅ Verified! Permanent access granted.', 'success');
+                }, 1000);
+            }
+
+        } catch (e) {
+            console.error('❌ Login error:', e);
+            errorMsg.textContent = '❌ ' + (e.message || 'Login failed. Please try again.');
+            errorMsg.style.display = 'block';
+            loader.style.display = 'none';
+            loginBtn.disabled = false;
+            loginBtn.textContent = '🔑 Login';
+        }
+    }
+
+    // ============================================================
+    // ============ CHECK VERIFICATION STATUS ON APP LOAD ============
+    // ============================================================
+
+    async function checkGateStatusOnLoad() {
+        setTimeout(async () => {
+            try {
+                // Check if user is permanently verified
+                const isPermanent = localStorage.getItem('gate_verified_permanent') === 'true';
+                const storedUsername = localStorage.getItem('gate_username');
+
+                if (isPermanent && storedUsername) {
+                    console.log('✅ User is permanently verified:', storedUsername);
+                    
+                    // Initialize Supabase if needed
+                    if (!supabaseClient) {
+                        initSupabase();
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+
+                    if (supabaseClient) {
+                        const { data: user, error } = await supabaseClient
+                            .from('gate_users')
+                            .select('*')
+                            .eq('username', storedUsername)
+                            .maybeSingle();
+
+                        if (error) throw error;
+
+                        if (user && user.status === 'verified') {
+                            // Check if not cancelled
+                            if (user.status === 'cancelled') {
+                                // User was cancelled - remove permanent status
+                                localStorage.removeItem('gate_verified_permanent');
+                                localStorage.removeItem('gate_username');
+                                gateState.isPermanentlyVerified = false;
+                                gateState.isVerified = false;
+                                document.getElementById('gateAccessBlocker').style.display = 'flex';
+                                document.getElementById('verifiedBadge').style.display = 'none';
+                                document.getElementById('gateTriggerButton').style.display = 'block';
+                                return;
+                            }
+
+                            // User is still verified - make permanent again
+                            gateState.isPermanentlyVerified = true;
+                            gateState.isVerified = true;
+                            gateState.isLoggedIn = true;
+                            gateState.username = storedUsername;
+                            
+                            // Hide all login elements
+                            document.getElementById('gateTriggerButton').style.display = 'none';
+                            document.getElementById('gateAccessBlocker').style.display = 'none';
+                            document.getElementById('verifiedBadge').style.display = 'flex';
+                            
+                            console.log('✅ Permanent verification restored for:', storedUsername);
+                            return;
+                        }
+                    }
+                }
+
+                // Not permanently verified - check if pending
+                if (storedUsername && !isPermanent) {
+                    console.log('⏳ Checking pending status for:', storedUsername);
+                    
+                    if (supabaseClient) {
+                        const { data: user, error } = await supabaseClient
+                            .from('gate_users')
+                            .select('*')
+                            .eq('username', storedUsername)
+                            .maybeSingle();
+
+                        if (error) throw error;
+
+                        if (user && user.status === 'verified') {
+                            // They got verified while away - make permanent now
+                            makeVerificationPermanent(storedUsername);
+                            return;
+                        }
+
+                        if (user && user.status === 'pending') {
+                            document.getElementById('gateAccessBlocker').style.display = 'flex';
+                            return;
+                        }
+
+                        if (user && user.status === 'cancelled') {
+                            localStorage.removeItem('gate_username');
+                            document.getElementById('gateAccessBlocker').style.display = 'flex';
+                            return;
+                        }
+                    }
+                }
+
+                // Default: show blocker
+                console.log('🔒 User not verified - showing blocker');
+                document.getElementById('gateAccessBlocker').style.display = 'flex';
+
+            } catch (e) {
+                console.error('❌ Gate status check error:', e);
+                document.getElementById('gateAccessBlocker').style.display = 'flex';
+            }
+        }, 1500);
+    }
+
+    // ============================================================
+    // ============ LOGOUT FUNCTION (Clears permanent status) ============
+    // ============================================================
+
+    window.logoutGateUser = async function() {
+        if (gateState.isLoggedIn && gateState.username && supabaseClient) {
+            try {
+                const { data: user } = await supabaseClient
+                    .from('gate_users')
+                    .select('id')
+                    .eq('username', gateState.username)
+                    .maybeSingle();
+
+                if (user) {
+                    await supabaseClient
+                        .from('gate_sessions')
+                        .update({
+                            ended_at: new Date().toISOString(),
+                            is_active: false
+                        })
+                        .eq('user_id', user.id)
+                        .eq('is_active', true);
+
+                    await supabaseClient
+                        .from('gate_users')
+                        .update({
+                            is_online: false,
+                            session_id: null
+                        })
+                        .eq('id', user.id);
+                }
+            } catch (e) {
+                console.error('Logout error:', e);
+            }
+            
+            // Clear permanent verification
+            localStorage.removeItem('gate_verified_permanent');
+            localStorage.removeItem('gate_username');
+            gateState.isPermanentlyVerified = false;
+            gateState.isLoggedIn = false;
+            gateState.username = null;
+            gateState.isVerified = false;
+            gateState.sessionActive = false;
+            gateState.status = 'pending';
+            
+            // Show login elements again
+            document.getElementById('gateTriggerButton').style.display = 'block';
+            document.getElementById('gateAccessBlocker').style.display = 'flex';
+            document.getElementById('verifiedBadge').style.display = 'none';
+            
+            console.log('🔒 User logged out - permanent status cleared');
+            showToast('Logged out successfully', 'success');
+        }
+    };
+
+    // ============================================================
+    // ============ ORIGINAL NAVIGATION FUNCTIONS WITH GATE CHECK ============
+    // ============================================================
+
+    function goToPage1FromPage0() {
+        document.getElementById('page0').style.display = 'none';
+        document.getElementById('page1').style.display = 'flex';
+    }
+
+    setTimeout(function() {
+        goToPage1FromPage0();
+    }, 2000);
+
+    function goToPage2() {
+        document.getElementById('page1').style.display = 'none';
+        document.getElementById('page2').style.display = 'flex';
+    }
+
+    // ============ GATE-AWARE goToPage3 ============
+    function goToPage3() {
+        // Check if user is permanently verified
+        if (gateState.isPermanentlyVerified && gateState.isVerified) {
+            console.log('✅ Permanent verified - proceeding to game');
+            document.getElementById('gateAccessBlocker').style.display = 'none';
+            document.getElementById('gateTriggerButton').style.display = 'none';
+            document.getElementById('verifiedBadge').style.display = 'flex';
+            proceedToPage3();
+            return;
+        }
+
+        // Check if user is verified but not marked permanent (fix this)
+        if (gateState.isLoggedIn && gateState.isVerified && gateState.sessionActive) {
+            console.log('✅ Verified - making permanent');
+            makeVerificationPermanent(gateState.username);
+            proceedToPage3();
+            return;
+        }
+
+        // Not verified - show blocker
+        console.log('🔒 Blocked: User not verified - showing blocker');
+        document.getElementById('gateAccessBlocker').style.display = 'flex';
+    }
+
+    function proceedToPage3() {
+        document.getElementById('page2').style.display = 'none';
+        document.getElementById('page3').style.display = 'flex';
+        
+        setTimeout(function() {
+            proceedToPage4();
+        }, 1000);
+    }
+
+    function proceedToPage4() {
+        document.getElementById('page3').style.display = 'none';
+        document.getElementById('page4').style.display = 'flex';
+        
+        setTimeout(function() {
+            openAviatorApp();
+        }, 3000);
+    }
+
+    function openAviatorApp() {
+        document.getElementById('page0').style.display = 'none';
+        document.getElementById('page1').style.display = 'none';
+        document.getElementById('page2').style.display = 'none';
+        document.getElementById('page3').style.display = 'none';
+        document.getElementById('page4').style.display = 'none';
+        
+        const appContainer = document.querySelector('.app');
+        if (appContainer) {
+            appContainer.style.display = 'block';
+            appContainer.style.position = 'relative';
+            appContainer.style.zIndex = '1';
+        }
+        
+        document.body.style.overflow = 'auto';
+        document.body.style.height = 'auto';
+    }
+
+    // ============================================================
     // ============ FAST EXPONENTIAL GROWTH MULTIPLIER ============
+    // ============================================================
     const GROWTH_CONSTANT = 0.08406;
 
     function calculateMultiplierAtTime(seconds) {
@@ -4627,156 +5619,233 @@ window.showSignalButton = showSignalButton;
 window.removeSignalButton = removeSignalButton;
 //window.getSignal = getSignal;
 window.dismissSignal = dismissSignal;
-// ============================================================
-// PAGE 1: NAVIGATION
-// ============================================================
-// ============================================================
-// PAGE 0 NAVIGATION
-// ============================================================
-function goToPage1FromPage0() {
-    document.getElementById('page0').style.display = 'none';
-    document.getElementById('page1').style.display = 'flex';
-}
 
-// Auto-transition from Page 0 to Page 1 after 2 seconds
-setTimeout(function() {
-    goToPage1FromPage0();
-}, 2000);
-function goToPage2() {
-    document.getElementById('page1').style.display = 'none';
-    document.getElementById('page2').style.display = 'flex';
-}
-function goToPage3() {
-    document.getElementById('page2').style.display = 'none';
-    document.getElementById('page3').style.display = 'flex';
-    
-    // After 1 second, go to Page 4
-    setTimeout(function() {
-        goToPage4();
-    }, 1000);
-}
-function goToPage4() {
-    document.getElementById('page3').style.display = 'none';
-    document.getElementById('page4').style.display = 'flex';
-    
-    // After 3 seconds, go to Page 5
-    setTimeout(function() {
-        goToPage5();
-    }, 3000);
-}
-function goToPage5() {
-    // Hide page 4
-    document.getElementById('page4').style.display = 'none';
-    
-    // Try to open the real Aviator app
-    openAviatorApp();
-}
+    // ============================================================
+    // ============ INITIALIZE SUPABASE AND GATE ============
+    // ============================================================
+    document.addEventListener('DOMContentLoaded', function() {
+        initSupabase();
+        if (typeof supabase === 'undefined') {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js';
+            script.onload = function() {
+                console.log('✅ Supabase library loaded from CDN');
+                if (typeof supabase !== 'undefined' && supabase.createClient) {
+                    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                    console.log('✅ Supabase client created');
+                    checkGateStatusOnLoad();
+                }
+            };
+            script.onerror = function() {
+                console.error('❌ Failed to load Supabase library from CDN');
+            };
+            document.head.appendChild(script);
+        } else {
+            setTimeout(function() {
+                checkGateStatusOnLoad();
+            }, 1500);
+        }
+    });
 
-
-
-
-function openAviatorApp() {
-    // Hide all new pages
-    document.getElementById('page0').style.display = 'none';
-    document.getElementById('page1').style.display = 'none';
-    document.getElementById('page2').style.display = 'none';
-    document.getElementById('page3').style.display = 'none';
-    document.getElementById('page4').style.display = 'none';
-    
-    // Show your original game (the .app container)
-    const appContainer = document.querySelector('.app');
-    if (appContainer) {
-        appContainer.style.display = 'block';
-        appContainer.style.position = 'relative';
-        appContainer.style.zIndex = '1';
+    // ============================================================
+    // ============ PWA SERVICE WORKER - PRESERVED ============
+    // ============================================================
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(() => console.log('Service Worker registered ✅'))
+                .catch(err => console.log('Service Worker failed ❌', err));
+        });
     }
-    
-    // Make sure the body scrolls normally again
-    document.body.style.overflow = 'auto';
-    document.body.style.height = 'auto';
-}
 
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        setTimeout(() => {
+            const installBtn = document.createElement('div');
+            installBtn.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #28a71d;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 30px;
+                font-weight: 700;
+                z-index: 9999;
+                cursor: pointer;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                font-family: system-ui;
+            `;
+            installBtn.textContent = '📲 Install App';
+            installBtn.onclick = async () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                    await deferredPrompt.userChoice;
+                    deferredPrompt = null;
+                    installBtn.remove();
+                }
+            };
+            document.body.appendChild(installBtn);
+        }, 3000);
+    });
 
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+        setTimeout(() => {
+            const iosMsg = document.createElement('div');
+            iosMsg.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.9);
+                color: white;
+                padding: 15px 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                z-index: 9999;
+                text-align: center;
+                max-width: 90%;
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255,255,255,0.1);
+                font-family: system-ui;
+            `;
+            iosMsg.innerHTML = `
+                📱 Install on iOS:<br>
+                Tap <span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px;">Share</span>
+                then <span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px;">Add to Home Screen</span>
+                <br>
+                <button onclick="this.parentElement.remove()" style="margin-top:10px;background:#28a71d;color:white;border:none;padding:6px 20px;border-radius:20px;font-weight:600;cursor:pointer;">Got it!</button>
+            `;
+            document.body.appendChild(iosMsg);
+            setTimeout(() => { if (iosMsg.parentNode) iosMsg.remove(); }, 10000);
+        }, 3000);
+    }
+    (function() {
+    'use strict';
+
+    // ============================================================
+    // 1. SILENTLY BLOCK RIGHT-CLICK
+    // ============================================================
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
+    }, true);
+
+    // ============================================================
+    // 2. SILENTLY BLOCK KEYBOARD SHORTCUTS
+    // ============================================================
+    document.addEventListener('keydown', function(e) {
+        const key = e.key;
+        const ctrl = e.ctrlKey || e.metaKey;
+        const shift = e.shiftKey;
+
+        // F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U, Ctrl+Shift+C
+        if (key === 'F12' ||
+            (ctrl && shift && (key === 'I' || key === 'J' || key === 'C')) ||
+            (ctrl && key === 'u')) {
+            e.preventDefault();
+            e.stopPropagation();
+            return false;
+        }
+    }, true);
+
+    // ============================================================
+    // 3. SILENTLY DISABLE ALL CONSOLE METHODS
+    // ============================================================
+    const noop = function() {};
+    const consoleMethods = ['log', 'warn', 'error', 'info', 'debug', 'trace', 
+                           'dir', 'dirxml', 'group', 'groupEnd', 'table', 
+                           'count', 'time', 'timeEnd'];
+    consoleMethods.forEach(function(method) {
+        console[method] = noop;
+    });
+
+    // ============================================================
+    // 4. SILENTLY BLOCK SELECTION (except on inputs)
+    // ============================================================
+    document.addEventListener('selectstart', function(e) {
+        if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+            e.preventDefault();
+            return false;
+        }
+    }, true);
+
+    // ============================================================
+    // 5. SILENTLY BLOCK DRAGGING
+    // ============================================================
+    document.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+        return false;
+    }, true);
+
+    // ============================================================
+    // 6. SILENTLY DETECT DEVTOOLS AND BREAK IT
+    // ============================================================
+    let devtoolsOpen = false;
+    const element = new Image();
+    Object.defineProperty(element, 'id', {
+        get: function() {
+            devtoolsOpen = true;
+            return '';
+        }
+    });
+
+    setInterval(function check() {
+        devtoolsOpen = false;
+        console.log('%c', element);
+        if (devtoolsOpen) {
+            // DevTools is open – silently break console further
+            ['log', 'warn', 'error', 'info', 'debug'].forEach(function(method) {
+                console[method] = noop;
+            });
+            // Optionally: break the debugger
+            try { debugger; } catch(e) {}
+        }
+    }, 1000);
+
+    // ============================================================
+    // 7. SILENTLY BLOCK VIEW-SOURCE PROTOCOL
+    // ============================================================
+    try {
+        if (window.location.protocol === 'view-source:') {
+            window.location.href = window.location.href.replace('view-source:', '');
+        }
+    } catch(e) {}
+
+    // ============================================================
+    // 8. SILENTLY BLOCK DEVTOOLS ON MOBILE
+    // ============================================================
+    if (/Android|iPhone|iPad/i.test(navigator.userAgent)) {
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }, true);
+    }
+
+    // ============================================================
+    // 9. SILENTLY OVERRIDE DEBUGGER STATEMENT
+    // ============================================================
+    window.debugger = function() { return; };
+
+    // ============================================================
+    // 10. SILENTLY REMOVE SOURCE MAPS
+    // ============================================================
+    try {
+        document.querySelectorAll('script[src*=".map"]').forEach(function(el) {
+            el.remove();
+        });
+    } catch(e) {}
+
+    console.log('🛡️ Security Active');
+})();
     </script>
-
-         <script>
-// Register Service Worker
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('Service Worker registered ✅'))
-      .catch(err => console.log('Service Worker failed ❌', err));
-  });
-}
-
-// Install prompt for Android
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  setTimeout(() => {
-    const installBtn = document.createElement('div');
-    installBtn.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #28a71d;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 30px;
-      font-weight: 700;
-      z-index: 9999;
-      cursor: pointer;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-      font-family: system-ui;
-    `;
-    installBtn.textContent = '📲 Install App';
-    installBtn.onclick = async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        await deferredPrompt.userChoice;
-        deferredPrompt = null;
-        installBtn.remove();
-      }
-    };
-    document.body.appendChild(installBtn);
-  }, 3000);
-});
-
-// iOS install instructions
-const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-if (isIOS) {
-  setTimeout(() => {
-    const iosMsg = document.createElement('div');
-    iosMsg.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.9);
-      color: white;
-      padding: 15px 20px;
-      border-radius: 12px;
-      font-size: 14px;
-      z-index: 9999;
-      text-align: center;
-      max-width: 90%;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
-      font-family: system-ui;
-    `;
-    iosMsg.innerHTML = `
-      📱 Install on iOS:<br>
-      Tap <span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px;">Share</span>
-      then <span style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:4px;">Add to Home Screen</span>
-      <br>
-      <button onclick="this.parentElement.remove()" style="margin-top:10px;background:#28a71d;color:white;border:none;padding:6px 20px;border-radius:20px;font-weight:600;cursor:pointer;">Got it!</button>
-    `;
-    document.body.appendChild(iosMsg);
-    setTimeout(() => { if (iosMsg.parentNode) iosMsg.remove(); }, 10000);
-  }, 3000);
-}
-</script>
        </body>
 </html>
