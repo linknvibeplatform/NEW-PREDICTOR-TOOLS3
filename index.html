@@ -2840,7 +2840,7 @@ function handleGateTrigger() {
     
     if (gateState.isPermanentlyVerified && gateState.isVerified) {
         console.log('✅ Already verified');
-        document.getElementById('gateTriggerButton').style.display = 'none';
+        // VIEW CASHBACK STAYS VISIBLE - DO NOT HIDE
         document.getElementById('gateAccessBlocker').style.display = 'none';
         showToast('✅ You are verified! Full access granted.', 'success');
         return;
@@ -2919,9 +2919,8 @@ function makeVerificationPermanent(username) {
     localStorage.setItem('gate_verified_permanent', 'true');
     localStorage.setItem('gate_username', username);
     
-    var triggerBtn = document.getElementById('gateTriggerButton');
+    // VIEW CASHBACK STAYS VISIBLE - DO NOT HIDE
     var blocker = document.getElementById('gateAccessBlocker');
-    if (triggerBtn) triggerBtn.style.display = 'none';
     if (blocker) blocker.style.display = 'none';
     
     console.log('✅ Verification made permanent for:', username);
@@ -3228,9 +3227,8 @@ async function handleGateLogin() {
             setTimeout(function() {
                 closeGateLogin();
                 var blocker = document.getElementById('gateAccessBlocker');
-                var triggerBtn = document.getElementById('gateTriggerButton');
+                // VIEW CASHBACK STAYS VISIBLE - DO NOT HIDE
                 if (blocker) blocker.style.display = 'none';
-                if (triggerBtn) triggerBtn.style.display = 'none';
                 showToast('✅ Verified! Permanent access granted.', 'success');
             }, 1000);
         }
@@ -3282,9 +3280,8 @@ async function checkGateStatusOnLoad() {
                             gateState.isPermanentlyVerified = false;
                             gateState.isVerified = false;
                             var blocker = document.getElementById('gateAccessBlocker');
-                            var triggerBtn = document.getElementById('gateTriggerButton');
+                            // VIEW CASHBACK STAYS VISIBLE
                             if (blocker) blocker.style.display = 'flex';
-                            if (triggerBtn) triggerBtn.style.display = 'block';
                             return;
                         }
 
@@ -3294,8 +3291,7 @@ async function checkGateStatusOnLoad() {
                         gateState.username = storedUsername;
                         
                         var blocker = document.getElementById('gateAccessBlocker');
-                        var triggerBtn = document.getElementById('gateTriggerButton');
-                        if (triggerBtn) triggerBtn.style.display = 'none';
+                        // VIEW CASHBACK STAYS VISIBLE
                         if (blocker) blocker.style.display = 'none';
                         
                         console.log('✅ Permanent verification restored for:', storedUsername);
@@ -3391,9 +3387,8 @@ window.logoutGateUser = async function() {
         gateState.sessionActive = false;
         gateState.status = 'pending';
         
-        var triggerBtn = document.getElementById('gateTriggerButton');
+        // VIEW CASHBACK STAYS VISIBLE
         var blocker = document.getElementById('gateAccessBlocker');
-        if (triggerBtn) triggerBtn.style.display = 'block';
         if (blocker) blocker.style.display = 'flex';
         
         console.log('🔒 User logged out');
@@ -3422,7 +3417,7 @@ window.logoutGateUser = async function() {
         if (gateState.isPermanentlyVerified && gateState.isVerified) {
             console.log('✅ Permanent verified - proceeding to game');
             document.getElementById('gateAccessBlocker').style.display = 'none';
-            document.getElementById('gateTriggerButton').style.display = 'none';
+            // VIEW CASHBACK STAYS VISIBLE - DO NOT HIDE
             proceedToPage3();
             return;
         }
