@@ -2560,9 +2560,9 @@ overflow: hidden;
             <!-- COUNTDOWN STATS - MOVED OUTSIDE OVERLAY SO IT PERSISTS -->
             <div id="countdownStats" style="position: absolute; bottom: 5px; right: 7px; display: none; z-index: 11;">
                 <div style="display: flex; align-items: center; gap: 2px; background: #2c2d30; border-radius: 16px; padding: 4px 10px;">
-                    <img id="pfp1" src="assets/pfp1.png" alt="PFP" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #0bdf15; margin-left: -3px; object-fit: cover;">
-                    <img id="pfp2" src="assets/pfp2.png" alt="PFP" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #0fe708; margin-left: -3px; object-fit: cover;">
-                    <img id="pfp3" src="assets/pfp3.png" alt="PFP" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #6bcf07; margin-left: -3px; object-fit: cover;">
+                    <img id="pfp1" src="pfp1.png" alt="PFP" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #0bdf15; margin-left: -3px; object-fit: cover;">
+                    <img id="pfp2" src="pfp2.png" alt="PFP" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #0fe708; margin-left: -3px; object-fit: cover;">
+                    <img id="pfp3" src="pfp3.png" alt="PFP" style="width: 25px; height: 25px; border-radius: 50%; border: 1px solid #6bcf07; margin-left: -3px; object-fit: cover;">
                     <span id="countdownBetCount" style="color: #ffffff; font-size: 11px; font-weight: 400; margin-left: 2px;">0</span>
                 </div>
             </div>
@@ -3746,9 +3746,36 @@ let signalTimeout = null;
         }
     }, 4000);
 }
-    function generateStakersForRound() {
+
+function generateStakersForRound() {
         const newStakers = [];
         const step = (maxStakeAmount - minStakeAmount) / 23;
+        
+        // ============================================================
+        // PILLPFP IMAGES - 24 images for 24 pill slots
+        // ============================================================
+        const pfpImages = [
+    'assets/pfp1.png', 'assets/pfp2.png', 'assets/pfp3.png',
+    'assets/pfp4.png', 'assets/pfp5.png', 'assets/pfp6.png',
+    'assets/pfp7.png', 'assets/pfp8.png', 'assets/pfp9.png',
+    'assets/pfp10.png', 'assets/pfp11.png', 'assets/pfp12.png',
+    'assets/pfp13.png', 'assets/pfp14.png', 'assets/pfp15.png',
+    'assets/pfp16.png', 'assets/pfp17.png', 'assets/pfp18.png',
+    'assets/pfp19.png', 'assets/pfp20.png', 'assets/pfp21.png',
+    'assets/pfp22.png', 'assets/pfp23.png', 'assets/pfp24.png'
+];
+        
+        // Shuffle the PILLPFP images for random assignment each round
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+        
+        const shuffledpfps = shuffleArray([...pfpImages]);
+        
         for (let i = 0; i < 24; i++) {
             let betAmount;
             if (i === 0) betAmount = maxStakeAmount;
@@ -3759,6 +3786,10 @@ let signalTimeout = null;
                 betAmount = Math.min(maxStakeAmount, Math.max(minStakeAmount, betAmount));
             }
             const username = usernames[i % usernames.length] + (Math.random() > 0.5 ? Math.floor(Math.random() * 9) : '');
+            
+            // Assign a PILLPFP image from the shuffled array
+            const pfpIndex = i % shuffledpfps.length;
+            
             newStakers.push({
                 id: `staker_${Date.now()}_${i}`,
                 username: username,
@@ -3767,13 +3798,13 @@ let signalTimeout = null;
                 multiplier: null,
                 win: 0,
                 cashedOut: false,
-                cashoutMultiplier: null
+                cashoutMultiplier: null,
+                pfp: shuffledpfps[pfpIndex] // Renamed: pillpfp
             });
         }
         return newStakers;
     }
-
-    function processRandomCashouts() {
+function processRandomCashouts() {
         if (cashoutTriggered || gamePhase !== 'running') return;
         cashoutTriggered = true;
         const totalPills = stakers.length;
@@ -4442,7 +4473,6 @@ let signalTimeout = null;
         amountDisplay.innerHTML = `${formatCurrency(betAmountValue)} UGX`;
         subtext.style.display = 'none';
     }
-
     function updateActivityFeed() {
         let filteredStakers = [...stakers];
         if (currentTab === 'top') {
@@ -4458,13 +4488,15 @@ let signalTimeout = null;
             const row = document.createElement('div');
             row.className = `activity-row ${isCashedOut ? 'cashed-out' : ''}`;
             row.style.cssText = 'background: ' + (isCashedOut ? '#3a5e20' : '#141516') + '; border-radius: 40px; padding: 0 16px; height: 44px; display: flex; align-items: center; margin-bottom: 8px;';
+            
             row.innerHTML = `
                       <div class="staker-pill-content">
                         <div class="staker-section">
-                          <div style="width: 28px; height: 28px; background: ${staker.color}; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; color: white;">
-                            ${staker.username.charAt(0).toUpperCase()}
+                          <!-- PFP Image Circle instead of text -->
+                          <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; border: 2px solid ${staker.color}; flex-shrink: 0; background: #1a1a2e; display: flex; align-items: center; justify-content: center;">
+                            <img src="${staker.pfp || 'assets/default.png'}" alt="${staker.username}" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:11px;font-weight:700;color:white;\'>${staker.username.charAt(0).toUpperCase()}</span>';">
                           </div>
-                          <span style="color: #9ea0a5; font-size: 13px; font-weight: 500;">${staker.username}</span>
+                          <span style="color: #9ea0a5; font-size: 13px; font-weight: 500; margin-left: 6px;">${staker.username}</span>
                         </div>
                         <div class="staker-values">
                           <div class="staker-value-item">
@@ -4485,7 +4517,6 @@ let signalTimeout = null;
             activityContainer.appendChild(row);
         });
     }
-
     function refreshStakersForNewRound() {
         stakers = generateStakersForRound();
         cashoutMultipliers.clear();
