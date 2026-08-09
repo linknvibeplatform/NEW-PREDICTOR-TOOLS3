@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>SHARPI · Affiliate Tester</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #0c1425;
+            --bg-card: rgba(16, 26, 50, 0.85);
+            --bg-card-hover: rgba(26, 40, 70, 0.9);
+            --bg-input: rgba(255, 255, 255, 0.04);
+            --bg-input-hover: rgba(255, 255, 255, 0.07);
+            --text-primary: #e8edf5;
+            --text-secondary: #8a9bb5;
+            --text-muted: #4a5a7a;
+            --text-green: #34d399;
+            --text-red: #f87171;
+            --text-gold: #fbbf24;
+            --text-blue: #60a5fa;
+            --text-purple: #a78bfa;
+            --text-cyan: #22d3ee;
+            --text-orange: #fb923c;
+            --border: rgba(255, 255, 255, 0.06);
+            --border-light: rgba(255, 255, 255, 0.03);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --radius: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            --transition: .2s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 16px;
+            overflow-x: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 10px;
+        }
+
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            padding: 16px 20px;
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header .brand .logo {
+            font-size: 24px;
+            background: linear-gradient(135deg, var(--text-gold), #f59e0b);
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header .brand h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header .brand h1 span {
+            color: var(--text-gold);
+        }
+
+        .header .badge {
+            background: rgba(52, 211, 153, 0.08);
+            color: var(--text-green);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(52, 211, 153, 0.1);
+        }
+
+        .header .badge .dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-green);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .3; transform: scale(.8); }
+        }
+
+        /* PANELS */
+        .panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border-radius: var(--radius-xl);
+            border: 1px solid var(--border);
+            padding: 18px 20px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .panel-title .badge {
+            background: rgba(251, 191, 36, 0.08);
+            color: var(--text-gold);
+            padding: 0 10px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+
+        /* INPUTS */
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .input-group input {
+            flex: 1;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+            transition: all var(--transition);
+        }
+
+        .input-group input:focus {
+            border-color: var(--text-gold);
+            background: var(--bg-input-hover);
+        }
+
+        .input-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: scale(.97);
+        }
+        .btn:active {
+            transform: scale(.94);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--text-gold), #f59e0b);
+            color: #070b14;
+        }
+        .btn-gold:hover {
+            opacity: .9;
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--text-green), #059669);
+            color: white;
+        }
+        .btn-green:hover {
+            opacity: .9;
+        }
+
+        .btn-red {
+            background: linear-gradient(135deg, var(--text-red), #dc2626);
+            color: white;
+        }
+        .btn-red:hover {
+            opacity: .9;
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, var(--text-blue), #2563eb);
+            color: white;
+        }
+        .btn-blue:hover {
+            opacity: .9;
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, var(--text-purple), #7c3aed);
+            color: white;
+        }
+        .btn-purple:hover {
+            opacity: .9;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .btn-outline:hover {
+            background: var(--bg-input);
+            color: var(--text-primary);
+        }
+
+        .btn-sm {
+            padding: 6px 14px;
+            font-size: 11px;
+        }
+        .btn-xs {
+            padding: 4px 10px;
+            font-size: 10px;
+        }
+
+        /* STATUS BADGES */
+        .status-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        .status-badge.success {
+            background: rgba(52, 211, 153, 0.1);
+            color: var(--text-green);
+        }
+        .status-badge.pending {
+            background: rgba(251, 191, 36, 0.1);
+            color: var(--text-gold);
+        }
+        .status-badge.detected {
+            background: rgba(96, 165, 250, 0.1);
+            color: var(--text-blue);
+        }
+        .status-badge.dispatched {
+            background: rgba(167, 139, 250, 0.1);
+            color: var(--text-purple);
+        }
+        .status-badge.cancelled {
+            background: rgba(248, 113, 113, 0.1);
+            color: var(--text-red);
+        }
+
+        /* TEST CARDS */
+        .test-card {
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-light);
+            transition: all var(--transition);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .test-card:hover {
+            border-color: var(--border);
+            background: var(--bg-input-hover);
+        }
+
+        .test-card .info {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .test-card .info .amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-gold);
+        }
+
+        .test-card .info .detail {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .test-card .info .affiliate-code {
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-cyan);
+            background: rgba(34, 211, 238, 0.06);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .test-card .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        /* SIMULATION CONTROLS */
+        .sim-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .sim-controls .btn {
+            justify-content: center;
+        }
+
+        /* STATS ROW */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-box {
+            background: var(--bg-input);
+            border-radius: var(--radius);
+            padding: 12px 8px;
+            text-align: center;
+            border: 1px solid var(--border-light);
+        }
+
+        .stat-box .number {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-gold);
+        }
+        .stat-box .number.green {
+            color: var(--text-green);
+        }
+        .stat-box .number.blue {
+            color: var(--text-blue);
+        }
+        .stat-box .number.red {
+            color: var(--text-red);
+        }
+        .stat-box .label {
+            font-size: 9px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            text-transform: uppercase;
+            letter-spacing: .3px;
+        }
+
+        /* TOAST */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            z-index: 9999;
+            font-size: 13px;
+            color: var(--text-primary);
+            display: none;
+            max-width: 90%;
+            text-align: center;
+            backdrop-filter: blur(16px);
+            box-shadow: var(--shadow);
+        }
+
+        .toast.show {
+            display: block;
+            animation: slideUp .3s ease;
+        }
+        .toast.success {
+            border-color: var(--text-green);
+        }
+        .toast.error {
+            border-color: var(--text-red);
+        }
+        .toast.warning {
+            border-color: var(--text-gold);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 30px 10px;
+            color: var(--text-secondary);
+        }
+        .empty-state .icon {
+            font-size: 40px;
+            margin-bottom: 8px;
+            opacity: .4;
+        }
+        .empty-state .sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 480px) {
+            body { padding: 8px; }
+            .header { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+            .header .brand h1 { font-size: 15px; }
+            .stats-row { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+            .stat-box .number { font-size: 16px; }
+            .sim-controls { grid-template-columns: 1fr 1fr; }
+            .test-card { flex-direction: column; align-items: stretch; }
+            .test-card .actions { justify-content: flex-start; }
+            .input-group { flex-wrap: wrap; }
+            .input-group input { min-width: 100%; }
+            .input-group .btn { width: 100%; justify-content: center; }
+            .panel { padding: 14px 16px; }
+        }
+
+        @media (max-width: 360px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .sim-controls { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+
+        <!-- HEADER -->
+        <header class="header">
+            <div class="brand">
+                <div class="logo">🧪</div>
+                <h1>SHARPI <span>Tester</span></h1>
+            </div>
+            <div class="badge">
+                <span class="dot"></span>
+                LIVE
+            </div>
+        </header>
+
+        <!-- TOAST -->
+        <div class="toast" id="toast"></div>
+
+        <!-- PANEL: AFFILIATE SETUP -->
+        <div class="panel">
+            <div class="panel-title">
+                🎯 Affiliate Setup
+                <span class="badge">Demo Mode</span>
+            </div>
+            <div class="input-group">
+                <input type="text" id="affiliateCodeInput" placeholder="Enter affiliate code (e.g. SHARPI-ABC-1234)" />
+                <button class="btn btn-gold" onclick="setAffiliate()">Set</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--text-secondary);">
+                <span>Current:</span>
+                <span id="currentAffiliateDisplay" style="color:var(--text-cyan);font-family:monospace;font-weight:600;">Not set</span>
+                <span id="affiliateStatusBadge" style="display:none;" class="status-badge success">✅ Active</span>
+            </div>
+        </div>
+
+        <!-- PANEL: LINK SIMULATION -->
+        <div class="panel">
+            <div class="panel-title">
+                🔗 Link Click Simulation
+                <span class="badge">Test</span>
+            </div>
+            <div style="margin-bottom:10px;">
+                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                    <button class="btn btn-blue btn-sm" onclick="simulateLinkClick('tiktok')">📱 TikTok</button>
+                    <button class="btn btn-blue btn-sm" onclick="simulateLinkClick('instagram')">📸 Instagram</button>
+                    <button class="btn btn-blue btn-sm" onclick="simulateLinkClick('whatsapp')">💬 WhatsApp</button>
+                    <button class="btn btn-blue btn-sm" onclick="simulateLinkClick('telegram')">✈️ Telegram</button>
+                    <button class="btn btn-blue btn-sm" onclick="simulateLinkClick('other')">🌐 Other</button>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-outline btn-sm" onclick="simulateLinkClick('random')">🎲 Random</button>
+                    <button class="btn btn-outline btn-sm" onclick="simulateLinkClick('bulk')">📊 Bulk (10)</button>
+                </div>
+            </div>
+            <div id="linkClickStatus" style="font-size:12px;color:var(--text-muted);min-height:20px;"></div>
+        </div>
+
+        <!-- PANEL: SALES DISPATCH SIMULATION -->
+        <div class="panel">
+            <div class="panel-title">
+                💰 Sales Dispatch Simulation
+                <span class="badge">Test</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+                <button class="btn btn-green btn-sm" onclick="simulateSale(44000)">44,000 UGX</button>
+                <button class="btn btn-green btn-sm" onclick="simulateSale(88000)">88,000 UGX</button>
+                <button class="btn btn-green btn-sm" onclick="simulateSale(127000)">127,000 UGX</button>
+                <button class="btn btn-green btn-sm" onclick="simulateSale(277000)">277,000 UGX</button>
+                <button class="btn btn-green btn-sm" onclick="simulateSale(332000)">332,000 UGX</button>
+                <button class="btn btn-outline btn-sm" onclick="simulateSale('random')">🎲 Random</button>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                <button class="btn btn-purple btn-sm" onclick="simulateSale('dispatch')">📤 Dispatch Only</button>
+                <button class="btn btn-red btn-sm" onclick="simulateSale('cancel')">❌ Cancel Sale</button>
+                <button class="btn btn-outline btn-sm" onclick="clearAllSimulations()">🗑️ Clear All</button>
+            </div>
+            <div id="saleSimStatus" style="font-size:12px;color:var(--text-muted);min-height:20px;"></div>
+        </div>
+
+        <!-- PANEL: STATS OVERVIEW -->
+        <div class="panel">
+            <div class="panel-title">
+                📊 Stats Overview
+                <span class="badge" id="totalEventsBadge">0 events</span>
+            </div>
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="number blue" id="statLinkClicks">0</div>
+                    <div class="label">Link Clicks</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number green" id="statSalesDispatched">0</div>
+                    <div class="label">Sales Dispatched</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number red" id="statSalesCancelled">0</div>
+                    <div class="label">Sales Cancelled</div>
+                </div>
+            </div>
+            <div class="stats-row" style="margin-top:4px;">
+                <div class="stat-box">
+                    <div class="number gold" id="statTotalAmount">0 UGX</div>
+                    <div class="label">Total Test Revenue</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number purple" id="statConversionRate">0%</div>
+                    <div class="label">Conversion Rate</div>
+                </div>
+                <div class="stat-box">
+                    <div class="number cyan" id="statAvgAmount">0 UGX</div>
+                    <div class="label">Avg Sale Amount</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL: LIVE UPDATES -->
+        <div class="panel">
+            <div class="panel-title">
+                🔄 Live Updates
+                <span class="badge" id="updateCountBadge">0</span>
+                <button class="btn btn-outline btn-xs" onclick="clearUpdates()" style="margin-left:auto;">Clear</button>
+            </div>
+            <div id="updatesContainer">
+                <div class="empty-state">
+                    <div class="icon">📭</div>
+                    <div>No updates yet</div>
+                    <div class="sub">Simulate link clicks or sales to see real-time updates</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANEL: DEMO AFFILIATE DASHBOARD PREVIEW -->
+        <div class="panel" style="border-color:rgba(52,211,153,0.1);">
+            <div class="panel-title">
+                📱 Affiliate Dashboard Preview
+                <span class="badge" style="background:rgba(52,211,153,0.08);color:var(--text-green);">Demo</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                <div style="background:var(--bg-input);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border-light);">
+                    <div style="font-size:11px;color:var(--text-muted);">Total Clicks</div>
+                    <div style="font-size:22px;font-weight:700;color:var(--text-blue);" id="previewClicks">0</div>
+                </div>
+                <div style="background:var(--bg-input);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border-light);">
+                    <div style="font-size:11px;color:var(--text-muted);">Total Sales</div>
+                    <div style="font-size:22px;font-weight:700;color:var(--text-green);" id="previewSales">0</div>
+                </div>
+                <div style="background:var(--bg-input);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border-light);">
+                    <div style="font-size:11px;color:var(--text-muted);">Revenue</div>
+                    <div style="font-size:22px;font-weight:700;color:var(--text-gold);" id="previewRevenue">0 UGX</div>
+                </div>
+                <div style="background:var(--bg-input);border-radius:8px;padding:10px;text-align:center;border:1px solid var(--border-light);">
+                    <div style="font-size:11px;color:var(--text-muted);">Conv. Rate</div>
+                    <div style="font-size:22px;font-weight:700;color:var(--text-purple);" id="previewConvRate">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div style="text-align:center;padding:12px;color:var(--text-muted);font-size:10px;border-top:1px solid var(--border);margin-top:4px;">
+            🧪 SHARPI Affiliate Tester · Demo Mode Only · No Real Data Saved
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // AFFILIATE TESTER APP - COMPLETE ENGINE
+        // ============================================================
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let testerState = {
+            affiliateCode: null,
+            linkClicks: [],
+            salesDispatched: [],
+            salesCancelled: [],
+            updates: [],
+            stats: {
+                totalClicks: 0,
+                totalSales: 0,
+                totalCancelled: 0,
+                totalRevenue: 0,
+                conversionRate: 0,
+                avgAmount: 0
+            }
+        };
+
+        // ============================================================
+        // DOM REFS
+        // ============================================================
+        const $ = (id) => document.getElementById(id);
+        const affiliateCodeInput = $('affiliateCodeInput');
+        const currentAffiliateDisplay = $('currentAffiliateDisplay');
+        const affiliateStatusBadge = $('affiliateStatusBadge');
+        const linkClickStatus = $('linkClickStatus');
+        const saleSimStatus = $('saleSimStatus');
+        const updatesContainer = $('updatesContainer');
+        const updateCountBadge = $('updateCountBadge');
+        const totalEventsBadge = $('totalEventsBadge');
+
+        // Stats
+        const statLinkClicks = $('statLinkClicks');
+        const statSalesDispatched = $('statSalesDispatched');
+        const statSalesCancelled = $('statSalesCancelled');
+        const statTotalAmount = $('statTotalAmount');
+        const statConversionRate = $('statConversionRate');
+        const statAvgAmount = $('statAvgAmount');
+
+        // Preview
+        const previewClicks = $('previewClicks');
+        const previewSales = $('previewSales');
+        const previewRevenue = $('previewRevenue');
+        const previewConvRate = $('previewConvRate');
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(msg, type = '') {
+            const el = $('toast');
+            if (!el) return;
+            el.textContent = msg;
+            el.className = 'toast show ' + type;
+            clearTimeout(el._timer);
+            el._timer = setTimeout(() => { el.className = 'toast'; }, 4000);
+        }
+
+        // ============================================================
+        // AFFILIATE SETUP
+        // ============================================================
+        function setAffiliate() {
+            const code = affiliateCodeInput.value.trim().toUpperCase();
+            if (!code) {
+                showToast('⚠️ Please enter an affiliate code', 'error');
+                return;
+            }
+
+            testerState.affiliateCode = code;
+            currentAffiliateDisplay.textContent = code;
+            affiliateStatusBadge.style.display = 'inline-block';
+            showToast('✅ Affiliate set: ' + code, 'success');
+
+            // Add a welcome update
+            addUpdate({
+                type: 'affiliate_set',
+                message: 'Affiliate ' + code + ' activated',
+                timestamp: Date.now()
+            });
+
+            renderAll();
+        }
+
+        // ============================================================
+        // GENERATE RANDOM DATA
+        // ============================================================
+        function getRandomAmount() {
+            const amounts = [44000, 88000, 127000, 277000, 332000];
+            return amounts[Math.floor(Math.random() * amounts.length)];
+        }
+
+        function getRandomPlatform() {
+            const platforms = ['tiktok', 'instagram', 'whatsapp', 'telegram', 'other'];
+            return platforms[Math.floor(Math.random() * platforms.length)];
+        }
+
+        function getRandomUser() {
+            const users = ['JohnDoe', 'SarahK', 'MikeT', 'AishaM', 'RobertP', 'GraceN', 'JamesW', 'LindaO'];
+            return users[Math.floor(Math.random() * users.length)] + Math.floor(Math.random() * 100);
+        }
+
+        function getTimeAgo(timestamp) {
+            const seconds = Math.floor((Date.now() - timestamp) / 1000);
+            if (seconds < 60) return seconds + 's ago';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return minutes + 'm ago';
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return hours + 'h ago';
+            return Math.floor(hours / 24) + 'd ago';
+        }
+
+        // ============================================================
+        // SIMULATE LINK CLICK
+        // ============================================================
+        function simulateLinkClick(platform) {
+            if (!testerState.affiliateCode) {
+                showToast('⚠️ Please set an affiliate code first', 'error');
+                return;
+            }
+
+            const now = Date.now();
+            const click = {
+                id: 'click_' + now + '_' + Math.random().toString(36).substr(2, 4),
+                affiliateCode: testerState.affiliateCode,
+                platform: platform === 'random' ? getRandomPlatform() : platform,
+                timestamp: now,
+                userAgent: navigator.userAgent || 'Unknown',
+                referrer: document.referrer || 'direct',
+                converted: false,
+                ip: '127.0.0.1'
+            };
+
+            if (platform === 'bulk') {
+                for (let i = 0; i < 10; i++) {
+                    const bulkClick = {
+                        ...click,
+                        id: 'click_' + (now + i) + '_' + Math.random().toString(36).substr(2, 4),
+                        platform: getRandomPlatform(),
+                        timestamp: now + i * 100
+                    };
+                    testerState.linkClicks.push(bulkClick);
+                    testerState.stats.totalClicks++;
+                }
+                const platformDisplay = platform === 'random' ? getRandomPlatform() : platform;
+                linkClickStatus.textContent = '📊 10 bulk clicks simulated from various platforms';
+                showToast('📊 10 link clicks simulated!', 'success');
+            } else {
+                testerState.linkClicks.push(click);
+                testerState.stats.totalClicks++;
+                const platformDisplay = platform === 'random' ? getRandomPlatform() : platform;
+                linkClickStatus.textContent = '✅ Link click detected from ' + platformDisplay.toUpperCase();
+                showToast('✅ Link click from ' + platformDisplay.toUpperCase(), 'success');
+            }
+
+            addUpdate({
+                type: 'link_click',
+                message: 'Link clicked via ' + (platform === 'random' ? getRandomPlatform() : platform).toUpperCase(),
+                timestamp: now,
+                platform: platform === 'random' ? getRandomPlatform() : platform,
+                clickId: click.id
+            });
+
+            // Random conversion (20% chance per click)
+            if (Math.random() < 0.2 && platform !== 'bulk') {
+                setTimeout(() => {
+                    const amount = getRandomAmount();
+                    simulateSale(amount);
+                }, 500 + Math.random() * 1500);
+            }
+
+            renderAll();
+        }
+
+        // ============================================================
+        // SIMULATE SALE
+        // ============================================================
+        function simulateSale(type) {
+            if (!testerState.affiliateCode) {
+                showToast('⚠️ Please set an affiliate code first', 'error');
+                return;
+            }
+
+            const now = Date.now();
+
+            // If type is 'cancel', cancel the most recent pending sale
+            if (type === 'cancel') {
+                const pending = testerState.salesDispatched.filter(s => s.status === 'pending');
+                if (pending.length === 0) {
+                    showToast('⚠️ No pending sales to cancel', 'error');
+                    return;
+                }
+                const sale = pending[pending.length - 1];
+                sale.status = 'cancelled';
+                sale.cancelledAt = now;
+                testerState.salesCancelled.push(sale);
+                testerState.stats.totalCancelled++;
+
+                // Remove from dispatched
+                testerState.salesDispatched = testerState.salesDispatched.filter(s => s.id !== sale.id);
+
+                addUpdate({
+                    type: 'sale_cancelled',
+                    message: 'Sale #' + sale.id.slice(0, 8) + ' cancelled',
+                    timestamp: now,
+                    amount: sale.amount
+                });
+
+                showToast('❌ Sale cancelled: ' + sale.amount.toLocaleString() + ' UGX', 'error');
+                renderAll();
+                return;
+            }
+
+            // If type is 'dispatch', just create a dispatch event
+            if (type === 'dispatch') {
+                const amount = getRandomAmount();
+                const sale = {
+                    id: 'sale_' + now + '_' + Math.random().toString(36).substr(2, 6),
+                    affiliateCode: testerState.affiliateCode,
+                    amount: amount,
+                    package: getPackageName(amount),
+                    status: 'dispatched',
+                    timestamp: now,
+                    user: getRandomUser(),
+                    dispatchedAt: now,
+                    isTest: true
+                };
+
+                testerState.salesDispatched.push(sale);
+                testerState.stats.totalSales++;
+                testerState.stats.totalRevenue += amount;
+
+                addUpdate({
+                    type: 'sale_dispatched',
+                    message: 'Sale dispatched: ' + amount.toLocaleString() + ' UGX',
+                    timestamp: now,
+                    amount: amount,
+                    saleId: sale.id
+                });
+
+                saleSimStatus.textContent = '📤 Sale dispatched: ' + amount.toLocaleString() + ' UGX';
+                showToast('📤 Sale dispatched: ' + amount.toLocaleString() + ' UGX', 'success');
+                renderAll();
+                return;
+            }
+
+            // Normal sale simulation
+            let amount = type === 'random' ? getRandomAmount() : type;
+
+            // Ensure amount is a number
+            if (typeof amount === 'string') {
+                amount = parseInt(amount) || getRandomAmount();
+            }
+
+            const sale = {
+                id: 'sale_' + now + '_' + Math.random().toString(36).substr(2, 6),
+                affiliateCode: testerState.affiliateCode,
+                amount: amount,
+                package: getPackageName(amount),
+                status: 'pending',
+                timestamp: now,
+                user: getRandomUser(),
+                isTest: true
+            };
+
+            testerState.salesDispatched.push(sale);
+            testerState.stats.totalSales++;
+            testerState.stats.totalRevenue += amount;
+
+            addUpdate({
+                type: 'sale_pending',
+                message: 'Sale recorded: ' + amount.toLocaleString() + ' UGX (pending)',
+                timestamp: now,
+                amount: amount,
+                saleId: sale.id
+            });
+
+            saleSimStatus.textContent = '💰 Sale recorded: ' + amount.toLocaleString() + ' UGX (pending dispatch)';
+            showToast('💰 Sale recorded: ' + amount.toLocaleString() + ' UGX', 'success');
+
+            // Auto-dispatch after 1-3 seconds (simulates admin processing)
+            if (type !== 'cancel') {
+                const delay = 1000 + Math.random() * 2000;
+                setTimeout(() => {
+                    const pendingSale = testerState.salesDispatched.find(s => s.id === sale.id);
+                    if (pendingSale && pendingSale.status === 'pending') {
+                        pendingSale.status = 'dispatched';
+                        pendingSale.dispatchedAt = Date.now();
+
+                        addUpdate({
+                            type: 'sale_dispatched',
+                            message: 'Sale dispatched: ' + amount.toLocaleString() + ' UGX ✅',
+                            timestamp: Date.now(),
+                            amount: amount,
+                            saleId: sale.id
+                        });
+
+                        showToast('📤 Sale dispatched: ' + amount.toLocaleString() + ' UGX ✅', 'success');
+                        renderAll();
+                    }
+                }, delay);
+            }
+
+            renderAll();
+        }
+
+        // ============================================================
+        // HELPER: GET PACKAGE NAME
+        // ============================================================
+        function getPackageName(amount) {
+            if (amount <= 44000) return 'Starter';
+            if (amount <= 88000) return 'Standard';
+            if (amount <= 127000) return 'Gold';
+            if (amount <= 277000) return 'Platinum';
+            return 'VIP';
+        }
+
+        // ============================================================
+        // ADD UPDATE
+        // ============================================================
+        function addUpdate(data) {
+            const update = {
+                id: 'update_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+                ...data,
+                timestamp: data.timestamp || Date.now(),
+                formattedTime: new Date().toLocaleTimeString()
+            };
+            testerState.updates.unshift(update);
+
+            // Keep only last 100 updates
+            if (testerState.updates.length > 100) {
+                testerState.updates = testerState.updates.slice(0, 100);
+            }
+
+            renderUpdates();
+        }
+
+        // ============================================================
+        // CLEAR ALL
+        // ============================================================
+        function clearAllSimulations() {
+            if (!confirm('Clear all test data? This will reset all stats.')) return;
+
+            testerState.linkClicks = [];
+            testerState.salesDispatched = [];
+            testerState.salesCancelled = [];
+            testerState.updates = [];
+            testerState.stats = {
+                totalClicks: 0,
+                totalSales: 0,
+                totalCancelled: 0,
+                totalRevenue: 0,
+                conversionRate: 0,
+                avgAmount: 0
+            };
+
+            linkClickStatus.textContent = '';
+            saleSimStatus.textContent = '';
+            showToast('🗑️ All test data cleared', 'warning');
+            renderAll();
+        }
+
+        function clearUpdates() {
+            testerState.updates = [];
+            renderUpdates();
+            showToast('✅ Updates cleared', 'success');
+        }
+
+        // ============================================================
+        // RENDER: UPDATES
+        // ============================================================
+        function renderUpdates() {
+            const container = updatesContainer;
+            const countBadge = updateCountBadge;
+
+            if (!container) return;
+
+            if (testerState.updates.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📭</div>
+                        <div>No updates yet</div>
+                        <div class="sub">Simulate link clicks or sales to see real-time updates</div>
+                    </div>
+                `;
+                countBadge.textContent = '0';
+                return;
+            }
+
+            countBadge.textContent = testerState.updates.length;
+
+            let html = '';
+            const recent = testerState.updates.slice(0, 20);
+
+            recent.forEach(update => {
+                let statusClass = 'pending';
+                let statusText = '⏳ Pending';
+                let icon = '📌';
+
+                if (update.type === 'link_click') {
+                    statusClass = 'detected';
+                    statusText = '🔗 Click';
+                    icon = '🔗';
+                } else if (update.type === 'sale_pending') {
+                    statusClass = 'pending';
+                    statusText = '⏳ Pending';
+                    icon = '💰';
+                } else if (update.type === 'sale_dispatched') {
+                    statusClass = 'dispatched';
+                    statusText = '📤 Dispatched';
+                    icon = '✅';
+                } else if (update.type === 'sale_cancelled') {
+                    statusClass = 'cancelled';
+                    statusText = '❌ Cancelled';
+                    icon = '❌';
+                } else if (update.type === 'affiliate_set') {
+                    statusClass = 'success';
+                    statusText = '✅ Active';
+                    icon = '🎯';
+                }
+
+                const amountDisplay = update.amount ? update.amount.toLocaleString() + ' UGX' : '';
+                const timeAgo = getTimeAgo(update.timestamp);
+
+                html += `
+                    <div class="test-card">
+                        <div class="info">
+                            <span>${icon}</span>
+                            <span class="detail">${update.message}</span>
+                            ${amountDisplay ? `<span class="amount">${amountDisplay}</span>` : ''}
+                            <span class="status-badge ${statusClass}">${statusText}</span>
+                            <span class="detail" style="color:var(--text-muted);font-size:9px;">${timeAgo}</span>
+                        </div>
+                        <div class="actions">
+                            <span style="font-size:9px;color:var(--text-muted);">${update.formattedTime || ''}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // ============================================================
+        // RENDER: STATS
+        // ============================================================
+        function renderStats() {
+            const stats = testerState.stats;
+
+            statLinkClicks.textContent = stats.totalClicks;
+            statSalesDispatched.textContent = stats.totalSales;
+            statSalesCancelled.textContent = stats.totalCancelled;
+            statTotalAmount.textContent = stats.totalRevenue.toLocaleString() + ' UGX';
+
+            const conversionRate = stats.totalClicks > 0 ? Math.round((stats.totalSales / stats.totalClicks) * 100) : 0;
+            stats.conversionRate = conversionRate;
+            statConversionRate.textContent = conversionRate + '%';
+
+            const avgAmount = stats.totalSales > 0 ? Math.round(stats.totalRevenue / stats.totalSales) : 0;
+            stats.avgAmount = avgAmount;
+            statAvgAmount.textContent = avgAmount.toLocaleString() + ' UGX';
+
+            // Update preview
+            previewClicks.textContent = stats.totalClicks;
+            previewSales.textContent = stats.totalSales;
+            previewRevenue.textContent = stats.totalRevenue.toLocaleString() + ' UGX';
+            previewConvRate.textContent = conversionRate + '%';
+
+            // Update total events badge
+            const totalEvents = stats.totalClicks + stats.totalSales + stats.totalCancelled;
+            totalEventsBadge.textContent = totalEvents + ' events';
+        }
+
+        // ============================================================
+        // RENDER: ALL
+        // ============================================================
+        function renderAll() {
+            renderUpdates();
+            renderStats();
+        }
+
+        // ============================================================
+        // AUTO-SIMULATE ON LOAD (if affiliate set)
+        // ============================================================
+        function autoSimulate() {
+            // Check if affiliate is set
+            const savedCode = localStorage.getItem('tester_affiliate_code');
+            if (savedCode) {
+                affiliateCodeInput.value = savedCode;
+                setAffiliate();
+            }
+
+            // Auto-run some demo events after 3 seconds
+            setTimeout(() => {
+                if (testerState.affiliateCode) {
+                    simulateLinkClick('tiktok');
+                    setTimeout(() => simulateLinkClick('instagram'), 800);
+                    setTimeout(() => simulateSale(44000), 2000);
+                    setTimeout(() => simulateSale('random'), 3500);
+                }
+            }, 1500);
+        }
+
+        // ============================================================
+        // SAVE AFFILIATE CODE TO LOCALSTORAGE
+        // ============================================================
+        const originalSetAffiliate = setAffiliate;
+        setAffiliate = function() {
+            originalSetAffiliate();
+            const code = testerState.affiliateCode;
+            if (code) {
+                try {
+                    localStorage.setItem('tester_affiliate_code', code);
+                } catch (e) {}
+            }
+        };
+
+        // ============================================================
+        // EXPOSE FUNCTIONS GLOBALLY
+        // ============================================================
+        window.setAffiliate = setAffiliate;
+        window.simulateLinkClick = simulateLinkClick;
+        window.simulateSale = simulateSale;
+        window.clearAllSimulations = clearAllSimulations;
+        window.clearUpdates = clearUpdates;
+        window.testerState = testerState;
+        window.renderAll = renderAll;
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🧪 SHARPI Affiliate Tester loaded');
+            renderAll();
+            autoSimulate();
+
+            // Enter key on affiliate input
+            affiliateCodeInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') setAffiliate();
+            });
+        });
+
+        console.log('🧪 SHARPI Affiliate Tester Engine Ready');
+        console.log('📌 Available commands:');
+        console.log('  - setAffiliate()');
+        console.log('  - simulateLinkClick("tiktok")');
+        console.log('  - simulateSale(44000)');
+        console.log('  - clearAllSimulations()');
+        console.log('  - testerState (view state)');
+    </script>
+
+</body>
+</html>
