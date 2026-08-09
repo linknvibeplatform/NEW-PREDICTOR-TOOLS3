@@ -5866,5 +5866,466 @@ window.dismissSignal = dismissSignal;
     console.log('🛡️ Security Active');
 })();
     </script>
+        <!-- ============================================================
+         MINIMAL OVERLAY WIDGET - AVIATOR
+         ============================================================ -->
+         <div id="overlayWidget" style="
+         display: none;
+         position: fixed;
+         bottom: 120px;
+         right: 20px;
+         z-index: 999999;
+         background: rgba(0, 0, 0, 0.75);
+         backdrop-filter: blur(12px);
+         -webkit-backdrop-filter: blur(12px);
+         border: 1px solid rgba(255, 255, 255, 0.08);
+         border-radius: 30px;
+         padding: 10px 16px 10px 20px;
+         min-width: 100px;
+         max-width: 200px;
+         user-select: none;
+         touch-action: none;
+         cursor: grab;
+         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+         transition: none;
+         display: none;
+         align-items: center;
+         gap: 10px;
+     ">
+         <!-- Crash Point Display -->
+         <span id="widgetCrashPoint" style="
+             color: #ffffff;
+             font-size: 22px;
+             font-weight: 700;
+             font-family: 'Inter', -apple-system, sans-serif;
+             letter-spacing: 0.5px;
+             font-variant-numeric: tabular-nums;
+             pointer-events: none;
+             min-width: 60px;
+             text-align: center;
+         ">---x</span>
+         
+         <!-- Close Button -->
+         <span onclick="dismissOverlayWidget()" style="
+             color: rgba(255,255,255,0.3);
+             font-size: 18px;
+             font-weight: 300;
+             cursor: pointer;
+             padding: 0 4px;
+             transition: color 0.2s;
+             pointer-events: auto;
+         " onmouseover="this.style.color='rgba(255,255,255,0.8)'" onmouseout="this.style.color='rgba(255,255,255,0.3)'">✕</span>
+     </div>
+ 
+     <style>
+         /* Widget Glow Pulse */
+         @keyframes widgetPulse {
+             0%, 100% { opacity: 1; }
+             50% { opacity: 0.6; }
+         }
+         .widget-waiting {
+             animation: widgetPulse 1.5s ease-in-out infinite;
+         }
+     </style>
+         <script>
+            // ============================================================
+            // MINIMAL OVERLAY WIDGET - AVIATOR
+            // ============================================================
+            
+            let widgetActive = false;
+            let widgetDismissed = false;
+            let widgetPosition = { x: null, y: null };
+            
+            // Load saved position
+            function loadWidgetPosition() {
+                try {
+                    const saved = localStorage.getItem('sharpi_widget_position');
+                    if (saved) {
+                        const pos = JSON.parse(saved);
+                        widgetPosition = pos;
+                        const el = document.getElementById('overlayWidget');
+                        if (el && pos.x !== null && pos.y !== null) {
+                            el.style.left = pos.x + 'px';
+                            el.style.top = pos.y + 'px';
+                            el.style.right = 'auto';
+                            el.style.bottom = 'auto';
+                        }
+                    }
+                } catch (e) {}
+            }
+            
+            // Save widget position
+            function saveWidgetPosition() {
+                try {
+                    const el = document.getElementById('overlayWidget');
+                    if (el) {
+                        const rect = el.getBoundingClientRect();
+                        widgetPosition.x = rect.left;
+                        widgetPosition.y = rect.top;
+                        localStorage.setItem('sharpi_widget_position', JSON.stringify(widgetPosition));
+                    }
+                } catch (e) {}
+            }
+            
+            // Show widget
+            function showOverlayWidget() {
+                if (widgetDismissed) return;
+                const el = document.getElementById('overlayWidget');
+                if (el) {
+                    el.style.display = 'flex';
+                    widgetActive = true;
+                    loadWidgetPosition();
+                }
+            }
+            
+            // Hide widget
+            function hideOverlayWidget() {
+                const el = document.getElementById('overlayWidget');
+                if (el) {
+                    el.style.display = 'none';
+                    widgetActive = false;
+                }
+            }
+            
+            // Dismiss widget (permanently until re-enabled)
+            function dismissOverlayWidget() {
+                widgetDismissed = true;
+                hideOverlayWidget();
+                localStorage.setItem('sharpi_widget_dismissed', 'true');
+                showToast('Widget dismissed. Re-enable from settings.', 'warning');
+            }
+            
+            // Update widget with crash point
+            function updateWidgetCrashPoint(value) {
+                const el = document.getElementById('widgetCrashPoint');
+                if (!el) return;
+                
+                // If widget is dismissed, don't update
+                if (widgetDismissed) return;
+                
+                // If value is null or undefined, show waiting
+                if (value === null || value === undefined) {
+                    el.textContent = '---x';
+                    el.style.color = '#ffffff';
+                    el.style.opacity = '0.4';
+                    el.classList.add('widget-waiting');
+                    return;
+                }
+                
+                // Show the crash point
+                const displayValue = typeof value === 'number' ? value.toFixed(2) + 'x' : value + 'x';
+                el.textContent = displayValue;
+                el.style.opacity = '1';
+                el.classList.remove('widget-waiting');
+                
+                // Color based on multiplier
+                if (value < 2) {
+                    el.style.color = '#60a5fa'; // Blue
+                } else if (value < 5) {
+                    el.style.color = '#a78bfa'; // Purple
+                } else if (value < 10) {
+                    el.style.color = '#f59e0b'; // Gold
+                } else {
+                    el.style.color = '#f87171'; // Red
+                }
+            }
+            
+            // ============================================================
+            // WIDGET DRAG FUNCTIONALITY
+            // ============================================================
+            (function setupWidgetDrag() {
+                const widget = document.getElementById('overlayWidget');
+                if (!widget) return;
+                
+                let isDragging = false;
+                let dragOffsetX = 0;
+                let dragOffsetY = 0;
+                let hasMoved = false;
+                
+                widget.addEventListener('mousedown', function(e) {
+                    if (e.target.tagName === 'SPAN' && e.target.textContent === '✕') return;
+                    isDragging = true;
+                    hasMoved = false;
+                    const rect = widget.getBoundingClientRect();
+                    dragOffsetX = e.clientX - rect.left;
+                    dragOffsetY = e.clientY - rect.top;
+                    widget.style.cursor = 'grabbing';
+                    widget.style.transition = 'none';
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', function(e) {
+                    if (!isDragging) return;
+                    hasMoved = true;
+                    let x = e.clientX - dragOffsetX;
+                    let y = e.clientY - dragOffsetY;
+                    
+                    // Keep within viewport
+                    const rect = widget.getBoundingClientRect();
+                    const maxX = window.innerWidth - rect.width;
+                    const maxY = window.innerHeight - rect.height;
+                    x = Math.max(0, Math.min(x, maxX));
+                    y = Math.max(0, Math.min(y, maxY));
+                    
+                    widget.style.left = x + 'px';
+                    widget.style.top = y + 'px';
+                    widget.style.right = 'auto';
+                    widget.style.bottom = 'auto';
+                });
+                
+                document.addEventListener('mouseup', function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        widget.style.cursor = 'grab';
+                        if (hasMoved) {
+                            saveWidgetPosition();
+                        }
+                    }
+                });
+                
+                // Touch support
+                widget.addEventListener('touchstart', function(e) {
+                    if (e.target.tagName === 'SPAN' && e.target.textContent === '✕') return;
+                    const touch = e.touches[0];
+                    const rect = widget.getBoundingClientRect();
+                    dragOffsetX = touch.clientX - rect.left;
+                    dragOffsetY = touch.clientY - rect.top;
+                    isDragging = true;
+                    hasMoved = false;
+                    e.preventDefault();
+                }, { passive: false });
+                
+                document.addEventListener('touchmove', function(e) {
+                    if (!isDragging) return;
+                    hasMoved = true;
+                    const touch = e.touches[0];
+                    let x = touch.clientX - dragOffsetX;
+                    let y = touch.clientY - dragOffsetY;
+                    
+                    const rect = widget.getBoundingClientRect();
+                    const maxX = window.innerWidth - rect.width;
+                    const maxY = window.innerHeight - rect.height;
+                    x = Math.max(0, Math.min(x, maxX));
+                    y = Math.max(0, Math.min(y, maxY));
+                    
+                    widget.style.left = x + 'px';
+                    widget.style.top = y + 'px';
+                    widget.style.right = 'auto';
+                    widget.style.bottom = 'auto';
+                }, { passive: false });
+                
+                document.addEventListener('touchend', function() {
+                    if (isDragging) {
+                        isDragging = false;
+                        if (hasMoved) {
+                            saveWidgetPosition();
+                        }
+                    }
+                });
+            })();
+            
+            // ============================================================
+            // WIDGET ACTIVATION - HOOK INTO EXISTING GAME FLOW
+            // ============================================================
+            
+            // Check if widget was dismissed
+            (function checkWidgetDismissed() {
+                try {
+                    const dismissed = localStorage.getItem('sharpi_widget_dismissed');
+                    if (dismissed === 'true') {
+                        widgetDismissed = true;
+                    }
+                } catch (e) {}
+            })();
+            
+            // Show widget when game page becomes active
+            function onGamePageActive() {
+                // Check if not dismissed
+                if (widgetDismissed) return;
+                
+                // Show widget after a short delay
+                setTimeout(function() {
+                    showOverlayWidget();
+                    // Update with current crash point if available
+                    if (typeof crashPoint !== 'undefined' && crashPoint) {
+                        updateWidgetCrashPoint(crashPoint);
+                    }
+                }, 500);
+            }
+            
+            // Hook into game page activation
+            const originalOpenAviatorApp = window.openAviatorApp || function() {
+                // Default implementation if not defined
+            };
+            
+            window.openAviatorApp = function() {
+                originalOpenAviatorApp();
+                onGamePageActive();
+            };
+            
+            // Also check if already on game page
+            document.addEventListener('DOMContentLoaded', function() {
+                // Check if app container is visible (game page active)
+                const appContainer = document.querySelector('.app');
+                if (appContainer && appContainer.style.display !== 'none') {
+                    setTimeout(onGamePageActive, 1000);
+                }
+            });
+            
+            // Watch for page changes (when going to game)
+            const originalProceedToPage4 = window.proceedToPage4 || function() {
+                // Default implementation
+            };
+            
+            window.proceedToPage4 = function() {
+                originalProceedToPage4();
+                // Show widget when game page loads
+                setTimeout(function() {
+                    if (!widgetDismissed) {
+                        showOverlayWidget();
+                    }
+                }, 800);
+            };
+            
+            // ============================================================
+            // HOOK INTO CRASH POINT UPDATES
+            // ============================================================
+            
+            // Override updateMultiplier to update widget
+            const originalUpdateMultiplier = window.updateMultiplier || function() {};
+            window.updateMultiplier = function(now) {
+                originalUpdateMultiplier(now);
+                
+                // Update widget with current crash point
+                if (widgetActive && !widgetDismissed && typeof currentMultiplier !== 'undefined') {
+                    updateWidgetCrashPoint(currentMultiplier);
+                }
+            };
+            
+            // Override crashGame to update widget on crash
+            const originalCrashGame = window.crashGame || function() {};
+            window.crashGame = function() {
+                originalCrashGame();
+                
+                // Update widget with crash point
+                if (widgetActive && !widgetDismissed && typeof crashPoint !== 'undefined') {
+                    updateWidgetCrashPoint(crashPoint);
+                }
+            };
+            
+            // Override startCountdown to reset widget
+            const originalStartCountdown = window.startCountdown || function() {};
+            window.startCountdown = function() {
+                originalStartCountdown();
+                
+                // Reset widget to waiting state during countdown
+                if (widgetActive && !widgetDismissed) {
+                    // Show waiting during countdown (will update when multiplier starts)
+                    updateWidgetCrashPoint(null);
+                }
+            };
+            
+            // ============================================================
+            // WRITE CRASH DATA TO LOCALSTORAGE FOR CROSS-APP SYNC
+            // ============================================================
+            
+            // Function to write crash data to localStorage
+            function writeCrashDataToStorage(value) {
+                try {
+                    localStorage.setItem('sharpi_aviator_crash', JSON.stringify({
+                        crashPoint: value,
+                        timestamp: Date.now(),
+                        gameActive: true
+                    }));
+                } catch (e) {}
+            }
+            
+            // Hook into existing functions to write data
+            
+            // Override updateMultiplier to write data
+            const originalUpdateMultiplier2 = window.updateMultiplier || function() {};
+            window.updateMultiplier = function(now) {
+                originalUpdateMultiplier2(now);
+                
+                // Write to localStorage
+                if (typeof currentMultiplier !== 'undefined') {
+                    writeCrashDataToStorage(currentMultiplier);
+                }
+            };
+            
+            // Override crashGame to write crash data
+            const originalCrashGame2 = window.crashGame || function() {};
+            window.crashGame = function() {
+                originalCrashGame2();
+                
+                // Write crash point to localStorage
+                if (typeof crashPoint !== 'undefined') {
+                    writeCrashDataToStorage(crashPoint);
+                }
+            };
+            
+            // Override startCountdown to reset data
+            const originalStartCountdown2 = window.startCountdown || function() {};
+            window.startCountdown = function() {
+                originalStartCountdown2();
+                
+                // Write null to localStorage during countdown
+                try {
+                    localStorage.setItem('sharpi_aviator_crash', JSON.stringify({
+                        crashPoint: null,
+                        timestamp: Date.now(),
+                        gameActive: true,
+                        waiting: true
+                    }));
+                } catch (e) {}
+            };
+            
+            // ============================================================
+            // EXPOSE WIDGET CONTROLS GLOBALLY
+            // ============================================================
+            window.showOverlayWidget = showOverlayWidget;
+            window.hideOverlayWidget = hideOverlayWidget;
+            window.dismissOverlayWidget = dismissOverlayWidget;
+            window.updateWidgetCrashPoint = updateWidgetCrashPoint;
+            window.widgetActive = widgetActive;
+            window.widgetDismissed = widgetDismissed;
+            window.writeCrashDataToStorage = writeCrashDataToStorage;
+            
+            console.log('✅ Minimal Overlay Widget loaded (Aviator)');
+            console.log('📌 Widget will show crash points when game is active');
+            </script>
+                <script>
+                    // ============================================================
+                    // FINAL INIT - ENSURE WIDGET SHOWS ON GAME LOAD
+                    // ============================================================
+                    document.addEventListener('DOMContentLoaded', function() {
+                        // Check if we're on the game page
+                        const appContainer = document.querySelector('.app');
+                        if (appContainer && appContainer.style.display !== 'none') {
+                            // If widget not dismissed, show it
+                            if (!widgetDismissed) {
+                                setTimeout(function() {
+                                    showOverlayWidget();
+                                    console.log('🔄 Widget auto-shown on game load');
+                                }, 1500);
+                            }
+                        }
+                    });
+                    
+                    // Also hook into the page navigation to show widget when game loads
+                    const originalProceedToPage4Final = window.proceedToPage4 || function() {};
+                    window.proceedToPage4 = function() {
+                        originalProceedToPage4Final();
+                        // Show widget when game page loads
+                        setTimeout(function() {
+                            if (!widgetDismissed) {
+                                showOverlayWidget();
+                                console.log('🔄 Widget shown after page4');
+                            }
+                        }, 1000);
+                    };
+                    
+                    console.log('✅ Final widget init complete');
+                    </script>
        </body>
 </html>
