@@ -2652,23 +2652,32 @@ overflow: hidden;
                 </div>
             </div>
         </div>
-               <!-- SUMMARY PANEL -->
-               <div style="margin: 0 0 12px 0;">
-                <div style="display: flex; justify-content: space-between; align-items: center; background: #141516; border-radius: 16px; padding: 20px 16px;">
-                    <div style="display: flex; align-items: center; gap: 5px;">
-                        <div style="display: flex;">
-                            <div style="width: 28px; height: 28px; background: #ce4f75; border-radius: 50%; border: 2px solid #141516; margin-right: -6px;"></div>
-                            <div style="width: 28px; height: 28px; background: #2733a0; border-radius: 50%; border: 2px solid #141516; margin-right: -6px;"></div>
-                            <div style="width: 28px; height: 28px; background: #6cbb48; border-radius: 50%; border: 2px solid #141516;"></div>
-                        </div>
-                        <span style="color: #9ea0a5; font-size: 12px; font-weight: 400;" id="betCounter">0/0 Bets</span>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="color: white; font-weight: 700; font-size: 16px;" id="totalPayout" class="total-win-value">0.00</div>
-                        <div style="color: #9ea0a5; font-size: 9px; font-weight: 400;">TOTAL WIN UGX</div>
-                    </div>
-                </div>
-            </div>
+                            <!-- SUMMARY PANEL -->
+                            <div style="margin: 0 0 12px 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: #141516; border-radius: 16px; padding: 20px 16px;">
+                                    <div style="display: flex; align-items: center; gap: 5px;">
+                                        <div style="display: flex;">
+                                            <!-- PFP 1 - Real Image Placeholder -->
+                                            <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; border: 2px solid #141516; margin-right: -6px; background: #1a1a2e; flex-shrink: 0;">
+                                                <img id="summaryPfp1" src="assets/pfp1.png" alt="PFP" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:11px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;width:100%;height:100%;\'>S</span>';">
+                                            </div>
+                                            <!-- PFP 2 - Real Image Placeholder -->
+                                            <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; border: 2px solid #141516; margin-right: -6px; background: #1a1a2e; flex-shrink: 0;">
+                                                <img id="summaryPfp2" src="assets/pfp2.png" alt="PFP" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:11px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;width:100%;height:100%;\'>A</span>';">
+                                            </div>
+                                            <!-- PFP 3 - Real Image Placeholder -->
+                                            <div style="width: 28px; height: 28px; border-radius: 50%; overflow: hidden; border: 2px solid #141516; background: #1a1a2e; flex-shrink: 0;">
+                                                <img id="summaryPfp3" src="assets/pfp3.png" alt="PFP" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.style.display='none'; this.parentElement.innerHTML='<span style=\'font-size:11px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;width:100%;height:100%;\'>M</span>';">
+                                            </div>
+                                        </div>
+                                        <span style="color: #9ea0a5; font-size: 12px; font-weight: 400;" id="betCounter">0/0 Bets</span>
+                                    </div>
+                                    <div style="text-align: right;">
+                                        <div style="color: white; font-weight: 700; font-size: 16px;" id="totalPayout" class="total-win-value">0.00</div>
+                                        <div style="color: #9ea0a5; font-size: 9px; font-weight: 400;">TOTAL WIN UGX</div>
+                                    </div>
+                                </div>
+                            </div>
 
         <!-- SEPARATOR + PROGRESS -->
         <div style="margin: 0 0 12px 0;">
@@ -3761,8 +3770,8 @@ function generateStakersForRound() {
     'assets/pfp10.png', 'assets/image5.png', 'assets/image6.png',
     'assets/image7.png', 'assets/image8.png', 'assets/image9.png',
     'assets/image10.png', 'assets/image11.png', 'assets/image12.png',
-    'assets/image13.png', 'assets/image4.png', 'assets/pfp21.png',
-    'assets/pfp22.png', 'assets/pfp23.png', 'assets/pfp24.png'
+    'assets/image13.png', 'assets/image4.png', 'assets/pfp1.png',
+    'assets/pfp2.png', 'assets/pfp3.png', 'assets/pfp4.png'
 ];
         
         // Shuffle the PILLPFP images for random assignment each round
@@ -4534,6 +4543,9 @@ function processRandomCashouts() {
             const text = document.getElementById('countdownText');
             if (text) text.innerHTML = '4.0s';
             
+            // ============================================================
+            // COUNTDOWN STATS PFPS - ROTATE IMAGES
+            // ============================================================
             const pfpImages = [
                 'assets/pfp1.png', 'assets/pfp2.png', 'assets/pfp3.png',
                 'assets/pfp4.png', 'assets/pfp5.png', 'assets/pfp6.png',
@@ -4548,6 +4560,30 @@ function processRandomCashouts() {
             if (pfp1) pfp1.src = pfpImages[Math.floor(Math.random() * pfpImages.length)];
             if (pfp2) pfp2.src = pfpImages[Math.floor(Math.random() * pfpImages.length)];
             if (pfp3) pfp3.src = pfpImages[Math.floor(Math.random() * pfpImages.length)];
+            
+            // ============================================================
+            // SUMMARY PANEL PFPS - ROTATE IMAGES
+            // ============================================================
+            const summaryPfpImages = [
+                'assets/pfp1.png', 'assets/pfp2.png', 'assets/pfp3.png',
+                'assets/pfp4.png', 'assets/pfp5.png', 'assets/pfp6.png',
+                'assets/pfp7.png', 'assets/pfp8.png', 'assets/pfp9.png',
+                'assets/pfp10.png'
+            ];
+            
+            const summaryPfp1 = document.getElementById('summaryPfp1');
+            const summaryPfp2 = document.getElementById('summaryPfp2');
+            const summaryPfp3 = document.getElementById('summaryPfp3');
+            
+            if (summaryPfp1) {
+                summaryPfp1.src = summaryPfpImages[Math.floor(Math.random() * summaryPfpImages.length)];
+            }
+            if (summaryPfp2) {
+                summaryPfp2.src = summaryPfpImages[Math.floor(Math.random() * summaryPfpImages.length)];
+            }
+            if (summaryPfp3) {
+                summaryPfp3.src = summaryPfpImages[Math.floor(Math.random() * summaryPfpImages.length)];
+            }
             
             const stats = document.getElementById('countdownStats');
             if (stats) stats.style.display = 'flex';
